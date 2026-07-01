@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GlowMD Aesthetics — DTC Med Spa Model</title>
+<style>
+  :root{--navy:#1F2A44;--teal:#2E7D88;--ink:#222;--mut:#6b7280;--line:#e5e7eb;--bg:#f6f8f9;--card:#fff;--good:#1f8a4c;--bad:#c0392b;--amber:#9C6500;--purple:#7a4fb0}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;color:var(--ink);background:var(--bg);line-height:1.45}
+  header{background:linear-gradient(120deg,var(--navy),#2b3a5e);color:#fff;padding:18px 28px}
+  header h1{margin:0;font-size:19px}
+  header p{margin:4px 0 0;color:#c7d2e0;font-size:12.5px}
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:11px;flex-wrap:wrap}
+  .tabs{display:flex;gap:8px;flex-wrap:wrap}
+  .tabbtn{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.28);color:#dfe8ee;padding:5px 14px;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer}
+  .tabbtn.active{background:#fff;color:#1F2A44;border-color:#fff}
+  .copybtn{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.28);color:#dfe8ee;padding:5px 13px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer}
+  .copybtn:hover{background:rgba(255,255,255,.2)}
+  .view{display:none}.view.active{display:block}
+  .wrap{max-width:1200px;margin:16px auto;padding:0 18px;display:grid;grid-template-columns:320px 1fr;gap:16px;align-items:start}
+  .col{display:flex;flex-direction:column;gap:16px}
+  .bwrap{max-width:1200px;margin:16px auto;padding:0 18px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+  .card h2{font-size:11.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--teal);margin:0 0 10px}
+  .sub{font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--mut);margin:13px 0 6px;font-weight:700}
+  label{display:block;font-size:12px;font-weight:600;margin:7px 0 2px;color:#374151}
+  .rowval{float:right;font-weight:700;color:var(--navy)}
+  input[type=range]{width:100%;accent-color:var(--teal);height:4px}
+  .chk{display:flex;align-items:center;gap:9px;font-size:12.5px;font-weight:600;color:#374151;margin:6px 0;cursor:pointer}
+  .chk input{width:16px;height:16px;accent-color:var(--teal)}
+  .hint{font-size:10.5px;color:var(--mut);margin-top:2px}
+  .sublev{margin:2px 0 8px 24px;padding-left:10px;border-left:2px solid var(--line)}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+  .kpi{background:#fafbfc;border:1px solid var(--line);border-radius:9px;padding:9px 11px}
+  .kpi .l{font-size:9.5px;color:var(--mut);text-transform:uppercase;letter-spacing:.3px}
+  .kpi .v{font-size:18px;font-weight:700;color:var(--navy);margin-top:1px}
+  .kpi .d{font-size:10.5px;font-weight:600;margin-top:1px}
+  .up{color:var(--good)}.down{color:var(--bad)}
+  .sb{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:10px}
+  .sbcard{border-radius:9px;padding:10px 12px;border:1px solid var(--line)}
+  .sbcard .l{font-size:10px;text-transform:uppercase;letter-spacing:.3px;color:var(--mut)}
+  .sbcard .v{font-size:20px;font-weight:800;margin-top:2px;color:var(--navy)}
+  .sbcard.alert{background:#fdecea;border-color:#f5c6c0}
+  .sbcard.ok{background:#e3f2e8;border-color:#bfe3cd}
+  svg{width:100%;height:auto;display:block}
+  .legend{font-size:11px;color:var(--mut);margin-top:6px;display:flex;gap:14px;flex-wrap:wrap}
+  .legend i{display:inline-block;width:15px;height:3px;vertical-align:middle;margin-right:5px;border-radius:2px}
+  @media(max-width:880px){.wrap{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,1fr)}}
+  .foot{max-width:1200px;margin:4px auto 26px;padding:0 18px;color:var(--mut);font-size:11px}
+  table.mix{width:100%;border-collapse:collapse;font-size:12px;margin-top:4px}
+  table.mix td{padding:3px 0}
+  table.mix .r{text-align:right;font-weight:700;color:var(--navy)}
+  .pnlhead{font-size:12px;font-weight:700;color:var(--navy);margin:14px 0 4px}
+  table.pnl{border-collapse:collapse;width:100%;font-size:10px;table-layout:fixed}
+  table.pnl th,table.pnl td{padding:2.5px 4px;text-align:right;white-space:nowrap;overflow:hidden}
+  table.pnl th:first-child,table.pnl td:first-child{text-align:left;width:118px}
+  table.pnl thead th{color:var(--mut);border-bottom:1px solid var(--line);font-weight:700}
+  table.pnl tr.tot td{font-weight:700;border-top:1px solid var(--line);color:var(--navy)}
+  table.pnl tr.mar td{font-style:italic;color:#6b7280}
+  table.pnl .yr{border-left:2px solid var(--line);font-weight:700}
+  table.bm{border-collapse:collapse;width:100%;font-size:12.5px;margin-top:8px}
+  table.bm th,table.bm td{padding:7px 10px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+  table.bm th:first-child,table.bm td:first-child{text-align:left}
+  table.bm th:nth-child(2),table.bm td:nth-child(2){text-align:left;color:var(--mut);white-space:normal}
+  table.bm thead th{color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.3px}
+  table.bm tr.me td{background:#eaf1f3;font-weight:700;color:var(--navy)}
+  table.bm tr.med td{font-style:italic;color:#595959}
+  .b40{display:inline-block;padding:1px 7px;border-radius:10px;font-size:11px;font-weight:700}
+  .b40.pass{background:#e3f2e8;color:var(--good)}.b40.fail{background:#f2f3f5;color:#6b7280}
+  .scrollx{overflow-x:auto;margin-top:6px}
+  table.pg{width:100%;border-collapse:collapse;font-size:11px;margin-top:4px}
+  table.pg th,table.pg td{padding:2px 2px;text-align:center}
+  table.pg th{color:var(--mut);font-size:9px;text-transform:uppercase;letter-spacing:.2px;font-weight:700}
+  table.pg td:first-child,table.pg th:first-child{text-align:left;color:#374151;font-weight:600}
+  input.ng{width:50px;font-size:11px;padding:2px 3px;border:1px solid var(--line);border-radius:5px;text-align:right;color:var(--navy);font-weight:600}
+  table.pg tfoot td{font-weight:700;color:var(--navy);border-top:1px solid var(--line);padding-top:4px}
+  .barrow{display:flex;align-items:center;gap:10px;margin:6px 0;font-size:12px}
+  .barrow .nm{width:210px;color:#374151}
+  .bartrack{flex:1;background:#eef1f3;border-radius:5px;height:16px;position:relative;overflow:hidden}
+  .barfill{height:100%;border-radius:5px}
+  .barrow .amt{width:52px;text-align:right;font-weight:700;color:var(--navy)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media(max-width:860px){.grid2{grid-template-columns:1fr}}
+  .ctlbar{max-width:1200px;margin:16px auto 0;padding:0 18px;display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start}
+  .ctlgroup{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 13px;box-shadow:0 1px 2px rgba(16,24,40,.04);flex:1 1 330px;min-width:300px}
+  .ctlgrid{display:grid;grid-template-columns:1fr 1fr;gap:3px 12px}
+  .ctl{min-width:0}
+  .ctl label{margin:5px 0 1px}
+  .ctl input[type=range]{margin-bottom:1px}
+  .ctlgroup .sub{margin-top:0}
+  .outwrap{max-width:1200px;margin:16px auto;padding:0 18px;display:flex;flex-direction:column;gap:16px}
+  .seg{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap}
+  .segbtn{background:#eef1f3;border:1px solid var(--line);color:#374151;padding:5px 12px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer}
+  .segbtn.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:9px 18px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .25s;pointer-events:none}
+  .toast.show{opacity:1}
+/* dark mode */
+:root{--ink:#e9edf3;--mut:#9aa6b6;--line:#2a3340;--bg:#0f1216;--card:#161a21}
+html,body{background:#0f1216!important}
+h1,h2,h3,h4,h5,th,strong,b{color:#e9edf3}
+[style*="color:#1F2A44"],[style*="color: #1F2A44"]{color:#e9edf3!important}
+table th,thead{background:#1b2028}
+.active{background:#2E7D88!important;color:#fff!important;border-color:#2E7D88!important}
+</style>
+</head>
+<body>
+<header>
+  <h1>GlowMD Aesthetics — DTC Med Spa Model</h1>
+  <p>Illustrative direct-to-consumer med spa · multi-site operating, CAC &amp; financing model</p>
+  <div class="topbar">
+    <div class="tabs">
+      <button class="tabbtn active" data-tab="model">Model</button>
+      <button class="tabbtn" data-tab="econ">Unit Economics</button>
+      <button class="tabbtn" data-tab="state">P&amp;L by Site</button>
+      <button class="tabbtn" data-tab="bench">Benchmarks</button>
+    </div>
+    <button class="copybtn" id="copyLink">🔗 Copy shareable link</button>
+  </div>
+</header>
+
+<div id="view-model" class="view active">
+<div class="ctlbar"><div class="ctlgroup" style="flex:1 1 430px"><div class="sub">Sites — ramp &amp; unit economics</div><div class="scrollx"><table class="pg"><thead><tr><th>Site</th><th>On</th><th>Launch</th><th>M0 rev $K</th><th>MoM g%</th><th>Fixed $K/mo</th><th>Build $K</th></tr></thead><tbody><tr><td>Scottsdale</td><td><input type="checkbox" id="s0_on" checked></td><td><input class="ng" type="number" id="s0_lm" min="0" max="24" step="1" value="0" style="width:38px"></td><td><input class="ng" type="text" inputmode="numeric" id="s0_r0" value="320" style="width:56px"></td><td><input class="ng" type="number" id="s0_g" min="-5" max="15" step="0.1" value="2.5" style="width:44px"></td><td><input class="ng" type="text" inputmode="numeric" id="s0_fx" value="60" style="width:50px"></td><td><input class="ng" type="text" inputmode="numeric" id="s0_en" value="0" style="width:56px"></td></tr><tr><td>Dallas</td><td><input type="checkbox" id="s1_on" checked></td><td><input class="ng" type="number" id="s1_lm" min="0" max="24" step="1" value="0" style="width:38px"></td><td><input class="ng" type="text" inputmode="numeric" id="s1_r0" value="260" style="width:56px"></td><td><input class="ng" type="number" id="s1_g" min="-5" max="15" step="0.1" value="3.0" style="width:44px"></td><td><input class="ng" type="text" inputmode="numeric" id="s1_fx" value="50" style="width:50px"></td><td><input class="ng" type="text" inputmode="numeric" id="s1_en" value="0" style="width:56px"></td></tr><tr><td>Miami</td><td><input type="checkbox" id="s2_on" checked></td><td><input class="ng" type="number" id="s2_lm" min="0" max="24" step="1" value="0" style="width:38px"></td><td><input class="ng" type="text" inputmode="numeric" id="s2_r0" value="200" style="width:56px"></td><td><input class="ng" type="number" id="s2_g" min="-5" max="15" step="0.1" value="3.5" style="width:44px"></td><td><input class="ng" type="text" inputmode="numeric" id="s2_fx" value="45" style="width:50px"></td><td><input class="ng" type="text" inputmode="numeric" id="s2_en" value="0" style="width:56px"></td></tr><tr><td>Austin</td><td><input type="checkbox" id="s3_on"></td><td><input class="ng" type="number" id="s3_lm" min="0" max="24" step="1" value="6" style="width:38px"></td><td><input class="ng" type="text" inputmode="numeric" id="s3_r0" value="120" style="width:56px"></td><td><input class="ng" type="number" id="s3_g" min="-5" max="15" step="0.1" value="6.0" style="width:44px"></td><td><input class="ng" type="text" inputmode="numeric" id="s3_fx" value="55" style="width:50px"></td><td><input class="ng" type="text" inputmode="numeric" id="s3_en" value="450" style="width:56px"></td></tr><tr><td>Nashville</td><td><input type="checkbox" id="s4_on"></td><td><input class="ng" type="number" id="s4_lm" min="0" max="24" step="1" value="9" style="width:38px"></td><td><input class="ng" type="text" inputmode="numeric" id="s4_r0" value="100" style="width:56px"></td><td><input class="ng" type="number" id="s4_g" min="-5" max="15" step="0.1" value="6.0" style="width:44px"></td><td><input class="ng" type="text" inputmode="numeric" id="s4_fx" value="50" style="width:50px"></td><td><input class="ng" type="text" inputmode="numeric" id="s4_en" value="400" style="width:56px"></td></tr></tbody></table></div><div class="hint">Each site ramps from its <b>M0 monthly revenue</b> at its <b>MoM growth</b>. <b>Fixed $/mo</b> = site GM salary, front desk, rent &amp; local overhead. <b>Build $</b> = one-time buildout/opening cost at launch.</div></div><div class="ctlgroup" style="flex:1 1 340px"><div class="sub">Revenue (DTC) &amp; marketing</div><div class="ctlgrid"><div class="ctl"><label>In-clinic avg ticket<span class="rowval" id="vRpvIP">$450</span></label><input type="range" id="rpvIP" min="200" max="900" step="10" value="450"></div><div class="ctl"><label>Virtual ticket (Rx)<span class="rowval" id="vRpvVirt">$180</span></label><input type="range" id="rpvVirt" min="60" max="400" step="10" value="180"></div><div class="ctl"><label>Virtual share of visits<span class="rowval" id="vTH">25%</span></label><input type="range" id="th" min="0" max="60" step="1" value="25"></div><div class="ctl"><label>Marketing % of revenue<span class="rowval" id="vMkt">18%</span></label><input type="range" id="mktPct" min="0" max="40" step="1" value="18"></div><div class="ctl"><label>CAC ($/customer)<span class="rowval" id="vCac">$250</span></label><input type="range" id="cac" min="50" max="700" step="10" value="250"></div><div class="ctl"><label>Visits / cust / yr<span class="rowval" id="vVy">3.5</span></label><input type="range" id="visitsYr" min="1" max="8" step="0.5" value="3.5"></div><div class="ctl"><label>Customer lifetime (yrs)<span class="rowval" id="vLy">2.5</span></label><input type="range" id="lifeYrs" min="0.5" max="5" step="0.5" value="2.5"></div></div><div class="hint">All cash-pay — no insurance. New customers/mo = marketing $ ÷ CAC. LTV = blended ticket × visits/yr × lifetime × gross margin.</div></div><div class="ctlgroup"><div class="sub">Labor</div><div class="ctlgrid"><div class="ctl"><label>Utilization<span class="rowval" id="vUtil">80%</span></label><input type="range" id="util" min="60" max="95" step="1" value="80"></div><div class="ctl"><label>In-person $/hr<span class="rowval" id="vIpcRate">$125/hr</span></label><input type="range" id="ipcRate" min="90" max="180" step="1" value="125"></div><div class="ctl"><label>Virtual $/hr<span class="rowval" id="vThcRate">$111/hr</span></label><input type="range" id="thcRate" min="80" max="160" step="1" value="111"></div><div class="ctl"><label>In-person v/clin/day<span class="rowval" id="vIpcDay">11.0</span></label><input type="range" id="ipcDay" min="6" max="16" step="0.5" value="11"></div><div class="ctl"><label>Virtual v/clin/day<span class="rowval" id="vThcDay">16.0</span></label><input type="range" id="thcDay" min="10" max="24" step="0.5" value="16"></div></div></div><div class="ctlgroup"><div class="sub">Support staff — ratio per clinician &amp; $/yr</div><div class="ctlgrid"><div class="ctl"><label>RN / nursing<span class="rowval"><span id="vRnR">0.50</span>× · $<span id="vRnC">120</span>K</span></label><input type="range" id="rnR" min="0.2" max="1" step="0.05" value="0.25"><input type="range" id="rnC" min="80" max="180" step="5" value="120"></div><div class="ctl"><label>BH tech / MA<span class="rowval"><span id="vBhtR">0.80</span>× · $<span id="vBhtC">70</span>K</span></label><input type="range" id="bhtR" min="0.3" max="1.5" step="0.05" value="0.5"><input type="range" id="bhtC" min="50" max="110" step="5" value="70"></div><div class="ctl"><label>Care coord.<span class="rowval"><span id="vCcR">0.30</span>× · $<span id="vCcC">75</span>K</span></label><input type="range" id="ccR" min="0.1" max="0.6" step="0.05" value="0.3"><input type="range" id="ccC" min="50" max="110" step="5" value="75"></div><div class="ctl"><label>Supervisors<span class="rowval"><span id="vSupR">0.12</span>× · $<span id="vSupC">160</span>K</span></label><input type="range" id="supR" min="0.05" max="0.3" step="0.01" value="0.08"><input type="range" id="supC" min="110" max="220" step="5" value="160"></div></div></div><div class="ctlgroup" style="flex:1 1 280px;min-width:240px"><div class="sub">Facility / non-labor cost / visit</div><div class="ctlgrid"><div class="ctl"><label>In-person (B&amp;M+supplies)<span class="rowval" id="vIpFac">$80</span></label><input type="range" id="ipFac" min="40" max="140" step="1" value="80"></div><div class="ctl"><label>Virtual (platform+supplies)<span class="rowval" id="vThFac">$20</span></label><input type="range" id="thFac" min="5" max="50" step="1" value="20"></div></div></div><div class="ctlgroup"><div class="sub">Financing</div><div class="ctlgrid"><div><label class="chk"><input type="checkbox" id="eqOn"> Equity raise</label><div class="ctl"><label>Amount<span class="rowval" id="vEqA">$12.0M</span></label><input type="range" id="eqA" min="5" max="20" step="0.5" value="12"></div><div class="ctl"><label>Close month<span class="rowval" id="vEqM">M9</span></label><input type="range" id="eqM" min="3" max="18" step="1" value="9"></div></div><div><label class="chk"><input type="checkbox" id="dbOn"> Venture debt</label><div class="ctl"><label>Amount<span class="rowval" id="vDbA">$5.0M</span></label><input type="range" id="dbA" min="2" max="10" step="0.5" value="5"></div><div class="ctl"><label>Draw month<span class="rowval" id="vDbM">M6</span></label><input type="range" id="dbM" min="3" max="18" step="1" value="6"></div></div></div><div class="hint" style="margin-top:6px;border-top:1px solid var(--line);padding-top:6px">Fixed: start cash $3.5M · floor $1.5M · raise lead 6 mo · debt 12%/yr.</div></div></div>
+<div class="outwrap">
+  <div class="card">
+      <h2>Live Outputs — Month 1 run-rate</h2>
+      <div class="kpis">
+        <div class="kpi"><div class="l">Revenue</div><div class="v" id="kRev">—</div><div class="d" id="kRevD"></div></div>
+        <div class="kpi"><div class="l">Gross margin</div><div class="v" id="kGM">—</div><div class="d" id="kGMD"></div></div>
+        <div class="kpi"><div class="l">Clinical labor</div><div class="v" id="kLab">—</div><div class="d" id="kLabD"></div></div>
+        <div class="kpi"><div class="l">EBITDA</div><div class="v" id="kEb">—</div><div class="d" id="kEbD"></div></div>
+      </div>
+      <div class="sb">
+        <div class="sbcard" id="sbCashout"><div class="l">Cash-out month</div><div class="v" id="kCashout">—</div></div>
+        <div class="sbcard" id="sbRaise"><div class="l">Raise Series B by</div><div class="v" id="kRaise">—</div></div>
+        <div class="sbcard" id="sbNeed"><div class="l">Min capital needed</div><div class="v" id="kNeed">—</div></div>
+      </div>
+      <div class="sb" style="grid-template-columns:repeat(4,1fr);margin-top:9px"><div class="sbcard"><div class="l">New customers / mo</div><div class="v" id="kNew">—</div></div><div class="sbcard"><div class="l">CAC</div><div class="v" id="kCac">—</div></div><div class="sbcard"><div class="l">LTV : CAC</div><div class="v" id="kLtv">—</div></div><div class="sbcard"><div class="l">CAC payback</div><div class="v" id="kPay">—</div></div></div>
+    </div>
+  <div class="card">
+      <h2>Cash Flow &amp; Projected P&amp;L — Months 0–12 ($000s)</h2>
+      <svg id="chart" viewBox="0 0 720 235" preserveAspectRatio="xMidYMid meet"></svg>
+      <div class="legend">
+        <span><i style="background:#1F2A44"></i>Ending cash</span>
+        <span><i style="background:#2E7D88"></i>Cash before financing</span>
+        <span><i style="background:#c0392b"></i>$1.5M floor</span>
+        <span style="color:var(--mut)">markers: cash-out · raise-by · financing</span>
+      </div>
+      <div class="pnlhead">Projected P&amp;L (same monthly axis)</div>
+      <table class="pnl" id="pnlTbl"></table>
+      <div class="hint" style="margin-top:6px">Expenses in parentheses. Gross profit = revenue − clinical labor − facility/non-labor; EBITDA = gross profit − corporate opex (HQ) − state market opex.</div>
+    </div>
+  <div class="card">
+      <h2>Hybrid-Care Labor — 12-Month Trend</h2>
+      <div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:2px">Clinical labor $/mo ($000s)</div>
+      <svg id="laborChart" viewBox="0 0 720 150" preserveAspectRatio="xMidYMid meet"></svg>
+      <div class="scrollx" style="margin-top:8px"><table class="pnl" id="laborTbl"></table></div>
+      <div class="hint" style="margin-top:6px">FTEs &amp; clinical labor by month, computed live from the staffing assumptions above — grows as volume ramps.</div>
+    </div>
+</div>
+</div>
+
+<div id="view-econ" class="view">
+<div class="bwrap">
+  <div class="card">
+    <h2>Unit Economics Over Time</h2>
+    <div class="hint" style="margin-bottom:4px">Per-visit economics by modality, and company EBITDA per visit (operating leverage as fixed corporate cost spreads over volume). Months 1–12.</div>
+    <svg id="econChart" viewBox="0 0 900 250" preserveAspectRatio="xMidYMid meet"></svg>
+    <div class="legend">
+      <span><i style="background:#1F2A44"></i>In-clinic contribution / visit</span>
+      <span><i style="background:#2E7D88"></i>Virtual contribution / visit</span>
+      <span><i style="background:#9C6500"></i>Company EBITDA / visit</span>
+    </div>
+    <div class="hint" id="econNote" style="margin-top:8px"></div>
+  </div>
+  <div class="grid2" style="margin-top:16px">
+    <div class="card">
+      <h2>Virtual (Rx) economics</h2>
+      <div class="hint" style="margin-bottom:2px">Virtual visits — lower reimbursement, but higher throughput and no facility cost.</div>
+      <table class="bm" id="thTbl"></table>
+    </div>
+    <div class="card">
+      <h2>In-clinic economics</h2>
+      <div class="hint" style="margin-bottom:2px">In-person visits — higher reimbursement, but lower throughput and brick-and-mortar cost.</div>
+      <table class="bm" id="ipTbl"></table>
+    </div>
+  </div>
+  <div class="card" style="margin-top:16px"><h2>Customer Acquisition — CAC &amp; LTV</h2><div class="hint" style="margin-bottom:6px">DTC funnel: marketing buys new customers at CAC; LTV = blended ticket × visits/yr × lifetime × gross margin. Months 1–12.</div><div class="grid2"><div><table class="bm" id="cacTbl"></table></div><div><div style="font-size:12.5px;font-weight:700;color:var(--navy);margin-bottom:4px">New customers / mo &amp; cumulative</div><svg id="cacChart" viewBox="0 0 900 190" preserveAspectRatio="xMidYMid meet"></svg><div class="legend"><span><i style="background:#2E7D88"></i>New customers / mo</span><span><i style="background:#1F2A44"></i>Cumulative customers</span></div></div></div></div>
+</div>
+</div>
+
+<div id="view-state" class="view">
+<div class="bwrap">
+  <div class="card">
+    <h2>Trended P&amp;L by Site</h2>
+    <div class="seg" id="stateSeg">
+      <button class="segbtn active" data-metric="rev">Revenue</button>
+      <button class="segbtn" data-metric="gp">Gross profit</button>
+      <button class="segbtn" data-metric="ebitda">EBITDA</button>
+    </div>
+    <svg id="stateChart" viewBox="0 0 900 250" preserveAspectRatio="xMidYMid meet"></svg>
+    <div class="legend" id="stateLegend"></div>
+    <div class="pnlhead" style="margin-top:14px">Ramp to profitability by site</div>
+    <table class="bm" id="stateBE"></table>
+    <div class="pnlhead" style="margin-top:14px">Monthly detail</div>
+    <div class="scrollx"><table class="pnl" id="stateTbl"></table></div>
+    <div class="hint" style="margin-top:8px">$000s by site over <b>Months 1–24</b> (full ramp). Existing markets are profitable from the start; a new market runs at a loss through its ramp — it carries entry cost, fixed market overhead (VP, RCM, ops) and an allocation of corporate opex — then reaches breakeven as volume builds. State EBITDA is fully loaded; corporate opex is allocated by revenue share.</div>
+  </div>
+</div>
+</div>
+
+<div id="view-bench" class="view">
+<div class="bwrap">
+  <div class="card">
+    <h2>Benchmarks vs. Public Comparables</h2>
+    <div class="hint" style="margin-bottom:6px">How this DTC med-spa model's unit economics stack up against publicly traded consumer-health / DTC telehealth companies (FY2025). Med-spa pure-plays are largely private, so these cash-pay, brand-driven comps are the closest public proxies — <b>Hims &amp; Hers</b> is the nearest structural match. The <b>GlowMD (this model)</b> row updates live. "Rule of 40" = revenue growth % + EBITDA margin %.</div>
+    <div class="scrollx"><table class="bm" id="bmTbl"></table></div>
+    <div class="hint" style="margin-top:8px">Revenue in $M (FY2025). LifeStance "center margin" used as gross-margin proxy; Teladoc gross margin n/a. GlowMD revenue is the model's annualized Year-1 run-rate; figures illustrative.</div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <h2>Margin Comparison</h2>
+    <div class="grid2">
+      <div><div style="font-size:12.5px;font-weight:700;color:var(--navy);margin-bottom:6px">Gross margin</div><div id="bmGM"></div></div>
+      <div><div style="font-size:12.5px;font-weight:700;color:var(--navy);margin-bottom:6px">Adjusted EBITDA margin</div><div id="bmEB"></div></div>
+    </div>
+    <div class="legend" style="margin-top:12px"><span><i style="background:#1F2A44"></i>GlowMD</span><span><i style="background:#9aa3af"></i>Public comps</span><span style="color:var(--mut)">Dashed = peer median</span></div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <h2>Implied Valuation &amp; Dilution (peer multiples)</h2>
+    <div class="hint" style="margin-bottom:4px">Applies the comp set's EV/Revenue multiples to GlowMD's annualized Year-1 revenue. <b>Public</b> multiples; an early-stage private company would transact at a discount. Illustrative; ~June 2026.</div>
+    <div class="scrollx"><table class="bm" id="valTbl"></table></div>
+    <div class="hint" id="valNote" style="margin-top:8px"></div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <h2>Sources</h2>
+    <div class="hint" style="font-size:11.5px;line-height:1.7">
+      Hims &amp; Hers (HIMS) FY2025: rev $2,348M, +59%; gross margin 74%; adj. EBITDA 13.5%; ≈2.5x rev.<br>
+      Talkspace (TALK) FY2025: rev ~$228M, ~+22%; gross margin ~45%; adj. EBITDA ~4%; ≈2.0x rev.<br>
+      Teladoc (TDOC) FY2025: rev $2,530M, −2%; adj. EBITDA 11.1%; forward P/S ~0.4x.<br>
+      Med-spa pure-plays are largely private; these DTC/consumer-health names are used as public proxies.<br>
+      Peer financials from FY2025 earnings releases / SEC filings; multiples ~June 2026, point-in-time. GlowMD is illustrative.
+    </div>
+  </div>
+</div>
+</div>
+
+<div id="toast" class="toast">Link copied to clipboard</div>
+<div class="foot">Illustrative company and figures. Model logic mirrors the delivered Excel workbook (Sites → Labor → CAC → Financing). Benchmark peers are real public companies; figures are point-in-time.</div>
+
+<script>
+var STATES=[{name:"Scottsdale"},{name:"Dallas"},{name:"Miami"},{name:"Austin"},{name:"Nashville"}];
+var STCOL=["#1F2A44","#2E7D88","#3A9AA8","#9C6500","#7a4fb0"];
+var RPV_BASE=382, WD=21, HRS=2080, CN=12;
+var CASH0=2000, OPEX0=70, OPEXG=0.015, CAPEX=25, WC=10, MINC=1000, LEAD=6, DBRATE=0.12, NM=24;
+var COMPS=[
+  {n:"Hims & Hers (HIMS)",short:"Hims & Hers",p:"DTC telehealth / wellness",rev:2348,g:0.59,gm:0.74,eb:0.135,ps:2.5},
+  {n:"Talkspace (TALK)",short:"Talkspace",p:"DTC behavioral telehealth",rev:228,g:0.22,gm:0.45,eb:0.04,ps:2.0},
+  {n:"Teladoc Health (TDOC)",short:"Teladoc",p:"Diversified telehealth",rev:2530,g:-0.02,gm:null,eb:0.111,ps:0.4}
+];
+var CTRLS=["s0_on","s0_lm","s0_r0","s0_g","s0_fx","s0_en","s1_on","s1_lm","s1_r0","s1_g","s1_fx","s1_en","s2_on","s2_lm","s2_r0","s2_g","s2_fx","s2_en","s3_on","s3_lm","s3_r0","s3_g","s3_fx","s3_en","s4_on","s4_lm","s4_r0","s4_g","s4_fx","s4_en","rpvIP","rpvVirt","mktPct","cac","visitsYr","lifeYrs","th","util","ipcRate","thcRate","ipcDay","thcDay","rnR","rnC","bhtR","bhtC","ccR","ccC","supR","supC","ipFac","thFac","eqOn","eqA","eqM","dbOn","dbA","dbM"];
+var stateMetric="rev";
+function $(id){return document.getElementById(id);}
+function f0(n){return Math.round(n).toLocaleString();}
+function fmt(v){var n=Math.round(v);return n<0?("("+Math.abs(n).toLocaleString()+")"):n.toLocaleString();}
+function pct(n){return (n*100).toFixed(1)+"%";}
+function pct0(n){return (n>=0?"+":"")+(n*100).toFixed(0)+"%";}
+function usd(n){return "$"+Math.round(n).toLocaleString();}
+function median(a){var s=a.slice().sort(function(x,y){return x-y;});var m=Math.floor(s.length/2);return s.length%2?s[m]:(s[m-1]+s[m])/2;}
+function gv(id){return +((""+$(id).value).replace(/,/g,""))||0;}
+function getState(){var o={},i,el;for(i=0;i<CTRLS.length;i++){el=$(CTRLS[i]);o[CTRLS[i]]=(el.type==="checkbox")?(el.checked?1:0):el.value;}return o;}
+function applyState(o){var i,id,el;for(i=0;i<CTRLS.length;i++){id=CTRLS[i];if(o[id]==null)continue;el=$(id);if(el.type==="checkbox")el.checked=(o[id]==1||o[id]==="1"||o[id]===true);else el.value=o[id];}}
+function saveState(){try{var o=getState(),p=new URLSearchParams();for(var k in o)p.set(k,o[k]);var qs=p.toString();history.replaceState(null,"","?"+qs);try{localStorage.setItem("northstar",qs);}catch(e){}}catch(e){}}
+function loadState(){try{var qs=(location.search||"").replace(/^\?/,"");if(!qs){try{qs=localStorage.getItem("northstar")||"";}catch(e){}}if(!qs)return;var p=new URLSearchParams(qs),o={};p.forEach(function(v,k){o[k]=v;});applyState(o);}catch(e){}}
+function toast(m){var t=$("toast");t.textContent=m;t.className="toast show";setTimeout(function(){t.className="toast";},1600);}
+function copyLink(){var p=new URLSearchParams(getState());var url=location.origin+location.pathname+"?"+p.toString();try{navigator.clipboard.writeText(url).then(function(){toast("Link copied — opens with these exact assumptions");},function(){toast("URL is in the address bar");});}catch(e){toast("URL is in the address bar");}}
+
+function readControls(){
+  var states=[],si;for(si=0;si<5;si++){states.push({name:STATES[si].name,on:$("s"+si+"_on").checked,launch:gv("s"+si+"_lm"),rev0:gv("s"+si+"_r0"),g:gv("s"+si+"_g")/100,fixed:gv("s"+si+"_fx"),entry:gv("s"+si+"_en")});}
+  return {states:states,rpvIP:gv("rpvIP"),rpvVirt:gv("rpvVirt"),mktPct:gv("mktPct")/100,cac:gv("cac"),visitsYr:gv("visitsYr"),lifeYrs:gv("lifeYrs"),th:+$("th").value/100,util:+$("util").value/100,
+    ipcRate:+$("ipcRate").value,thcRate:+$("thcRate").value,ipcDay:+$("ipcDay").value,thcDay:+$("thcDay").value,
+    rnR:+$("rnR").value,rnC:+$("rnC").value,bhtR:+$("bhtR").value,bhtC:+$("bhtC").value,ccR:+$("ccR").value,ccC:+$("ccC").value,supR:+$("supR").value,supC:+$("supC").value,
+    ipFac:+$("ipFac").value,thFac:+$("thFac").value,
+    eqOn:$("eqOn").checked,eqA:+$("eqA").value*1000,eqM:+$("eqM").value,dbOn:$("dbOn").checked,dbA:+$("dbA").value*1000,dbM:+$("dbM").value};
+}
+function stMonth(sp,t,c){
+  if(!sp.on||t<sp.launch)return {rev:0,visits:0,ipv:0,thv:0,ipc:0,thc:0,rn:0,bht:0,cc:0,sup:0,ipLA:0,thLA:0,labor:0,nonlabor:0,gp:0,fixed:0,entry:0};
+  var baseRev=sp.rev0*Math.pow(1+sp.g,t-sp.launch), visits=baseRev*1000/RPV_BASE;
+  var ipv=visits*(1-c.th), thv=visits*c.th;
+  var ipc=ipv/(WD*c.util*c.ipcDay), thc=thv/(WD*c.util*c.thcDay);
+  var rn=(ipc+thc)*c.rnR, bht=ipc*c.bhtR, cc=(ipc+thc)*c.ccR, sup=(ipc+thc)*c.supR;
+  var sharedA=rn*c.rnC*1000+cc*c.ccC*1000+sup*c.supC*1000, clin=ipc+thc;
+  var ipS=clin>0?ipc/clin:0, thS=clin>0?thc/clin:0;
+  var ipLA=ipc*c.ipcRate*HRS+bht*c.bhtC*1000+sharedA*ipS, thLA=thc*c.thcRate*HRS+sharedA*thS;
+  var labor=(ipLA+thLA)/12/1000, nonlabor=(ipv*c.ipFac+thv*c.thFac)/1000, rev=(ipv*c.rpvIP+thv*c.rpvVirt)/1000;
+  var fixed=sp.fixed, entry=(t===sp.launch)?sp.entry:0;
+  return {rev:rev,visits:visits,ipv:ipv,thv:thv,ipc:ipc,thc:thc,rn:rn,bht:bht,cc:cc,sup:sup,ipLA:ipLA,thLA:thLA,labor:labor,nonlabor:nonlabor,gp:rev-labor-nonlabor,fixed:fixed,entry:entry};
+}
+function model(c){
+  var end=[CASH0],bef=[CASH0],cashE=CASH0,cashB=CASH0,rows=[],cashout=null,t,i;
+  for(t=1;t<=NM;t++){
+    var sm=[],rev=0,labor=0,nonlabor=0,gp=0,fixed=0,entry=0,ipv=0,thv=0,ipLA=0,thLA=0,ipc=0,thc=0,rn=0,bht=0,cc=0,sup=0;
+    for(i=0;i<STATES.length;i++){var m=stMonth(c.states[i],t,c);sm.push(m);
+      rev+=m.rev;labor+=m.labor;nonlabor+=m.nonlabor;gp+=m.gp;fixed+=m.fixed;entry+=m.entry;
+      ipv+=m.ipv;thv+=m.thv;ipLA+=m.ipLA;thLA+=m.thLA;ipc+=m.ipc;thc+=m.thc;rn+=m.rn;bht+=m.bht;cc+=m.cc;sup+=m.sup;}
+    var corp=OPEX0*Math.pow(1+OPEXG,t), mkt=c.mktPct*rev, ebitda=gp-corp-fixed-mkt; var newCust=c.cac>0?mkt*1000/c.cac:0;
+    var ipRev=ipv*c.rpvIP/1000, thRev=thv*c.rpvVirt/1000, ipLab=ipLA/12/1000, thLab=thLA/12/1000, ipNon=ipv*c.ipFac/1000, thNon=thv*c.thFac/1000;
+    var mod={ip:{rev:ipRev,labor:ipLab,non:ipNon,contrib:ipRev-ipLab-ipNon,visits:ipv},th:{rev:thRev,labor:thLab,non:thNon,contrib:thRev-thLab-thNon,visits:thv}};
+    var states=[];for(i=0;i<STATES.length;i++){var alloc=rev>0?sm[i].rev/rev:0;
+      states.push({name:STATES[i].name,rev:sm[i].rev,gp:sm[i].gp,ebitda:sm[i].gp-sm[i].fixed-(corp+mkt)*alloc});}
+    var interest=(c.dbOn&&t>=c.dbM)?c.dbA*DBRATE/12:0, opcf=ebitda-CAPEX-entry-WC;
+    var eqin=(c.eqOn&&t===c.eqM)?c.eqA:0, dbin=(c.dbOn&&t===c.dbM)?c.dbA:0, ncf=opcf-interest+eqin+dbin;
+    cashB+=opcf;cashE+=ncf;bef.push(cashB);end.push(cashE);
+    if(cashout===null&&cashB<MINC)cashout=t;
+    rows.push({t:t,rev:rev,labor:labor,nonlabor:nonlabor,gp:gp,corp:corp,fixed:fixed,marketing:mkt,newCust:newCust,ebitda:ebitda,opcf:opcf,ncf:ncf,cashB:cashB,cashE:cashE,
+      visits:ipv+thv,mod:mod,states:states,fte:{ipc:ipc,thc:thc,rn:rn,bht:bht,cc:cc,sup:sup,total:ipc+thc+rn+bht+cc+sup,cost:labor}});
+  }
+  var minBef=Math.min.apply(null,bef.slice(1));
+  return {rows:rows,end:end,bef:bef,cashout:cashout,minBef:minBef,capNeed:Math.max(0,MINC-minBef),
+    raiseby:cashout?Math.max(0,cashout-LEAD):null,endM24:end[NM],minEnd:Math.min.apply(null,end.slice(1)),m1:rows[0]};
+}
+function chart(M,c){
+  var W=720,H=235,pl=44,pr=12,pt=18,pb=22,n=CN,i,k;
+  var endA=M.end.slice(0,n+1),befA=M.bef.slice(0,n+1),all=endA.concat(befA,[MINC,0]);
+  var min=Math.min.apply(null,all),max=Math.max.apply(null,all);
+  function x(i){return pl+(W-pl-pr)*i/n;} function y(v){return pt+(H-pt-pb)*(1-(v-min)/(max-min||1));}
+  var g="";if(min<0){var y0=y(0);g+='<rect x="'+pl+'" y="'+y0+'" width="'+(W-pl-pr)+'" height="'+(H-pb-y0)+'" fill="#fdecea"/>';}
+  for(k=0;k<=4;k++){var v=min+(max-min)*k/4,yy=y(v);g+='<line x1="'+pl+'" y1="'+yy+'" x2="'+(W-pr)+'" y2="'+yy+'" stroke="#eef1f3"/>';g+='<text x="'+(pl-6)+'" y="'+(yy+3)+'" text-anchor="end" font-size="9" fill="#9aa3af">'+f0(v)+'</text>';}
+  var yt=y(MINC);g+='<line x1="'+pl+'" y1="'+yt+'" x2="'+(W-pr)+'" y2="'+yt+'" stroke="#c0392b" stroke-dasharray="5 4" stroke-width="1.2"/>';
+  function vmark(mo,col,lab){if(!mo||mo<1||mo>n)return;var xx=x(mo);g+='<line x1="'+xx+'" y1="'+pt+'" x2="'+xx+'" y2="'+(H-pb)+'" stroke="'+col+'" stroke-width="1.2" stroke-dasharray="3 3"/>';g+='<text x="'+(xx+2)+'" y="'+(pt-6)+'" font-size="8.5" font-weight="700" fill="'+col+'">'+lab+'</text>';}
+  function line(arr,col,w){var d="",j;for(j=0;j<arr.length;j++){d+=(j?"L":"M")+x(j).toFixed(1)+","+y(arr[j]).toFixed(1)+" ";}return '<path d="'+d+'" fill="none" stroke="'+col+'" stroke-width="'+w+'"/>';}
+  g+=line(befA,"#2E7D88",2);g+=line(endA,"#1F2A44",2.6);
+  for(i=0;i<endA.length;i++)g+='<circle cx="'+x(i)+'" cy="'+y(endA[i])+'" r="2.2" fill="#1F2A44"/>';
+  for(i=0;i<=n;i++)g+='<text x="'+x(i)+'" y="'+(H-7)+'" text-anchor="middle" font-size="8.5" fill="#9aa3af">M'+i+'</text>';
+  if(c.eqOn)vmark(c.eqM,"#2E7D88","Equity");if(c.dbOn)vmark(c.dbM,"#7a4fb0","Debt");if(M.raiseby)vmark(M.raiseby,"#9C6500","Raise by");if(M.cashout)vmark(M.cashout,"#c0392b","Cash-out");
+  $("chart").innerHTML=g;
+}
+function pnlTable(M){
+  var R=M.rows,m=12,i,d;
+  var defs=[{l:"Revenue",f:function(r){return r.rev;}},{l:"Provider labor",f:function(r){return -r.labor;}},
+    {l:"Facility / supplies",f:function(r){return -r.nonlabor;}},{l:"Gross profit",f:function(r){return r.gp;},tot:1},
+    {l:"Gross margin %",mar:function(r){return r.gp;}},{l:"Corporate opex (HQ)",f:function(r){return -r.corp;}},
+    {l:"Site operating opex",f:function(r){return -r.fixed;}},{l:"Marketing (S&M)",f:function(r){return -r.marketing;}},{l:"EBITDA",f:function(r){return r.ebitda;},tot:1},
+    {l:"EBITDA margin %",mar:function(r){return r.ebitda;}}];
+  var head='<thead><tr><th>$000s</th>';for(i=0;i<m;i++)head+='<th>M'+(i+1)+'</th>';head+='<th class="yr">Yr 1</th></tr></thead>';
+  var b='<tbody>';for(d=0;d<defs.length;d++){var D=defs[d],cls=D.tot?'tot':(D.mar?'mar':'');b+='<tr class="'+cls+'"><td>'+D.l+'</td>';
+    if(D.mar){var nu=0,de=0;for(i=0;i<m;i++){b+='<td>'+(R[i].rev?pct(D.mar(R[i])/R[i].rev):'—')+'</td>';nu+=D.mar(R[i]);de+=R[i].rev;}b+='<td class="yr">'+pct(nu/de)+'</td>';}
+    else{var su=0;for(i=0;i<m;i++){var v=D.f(R[i]);su+=v;b+='<td>'+fmt(v)+'</td>';}b+='<td class="yr">'+fmt(su)+'</td>';}b+='</tr>';}
+  $("pnlTbl").innerHTML=head+b+'</tbody>';
+}
+function laborTable(M){
+  var R=M.rows,m=12,i,d;
+  var defs=[{l:"Injectors (NP/RN)",f:function(r){return r.fte.ipc;}},
+    {l:"Telehealth providers",f:function(r){return r.fte.thc;}},
+    {l:"RN / clinical",f:function(r){return r.fte.rn;}},
+    {l:"Aestheticians / MA",f:function(r){return r.fte.bht;}},
+    {l:"Front desk / coord.",f:function(r){return r.fte.cc;}},
+    {l:"Medical director / leads",f:function(r){return r.fte.sup;}},
+    {l:"Total clinical FTE",f:function(r){return r.fte.total;},tot:1,dec0:1},
+    {l:"Clinical labor / mo",f:function(r){return r.fte.cost;},tot:1,money:1}];
+  var head='<thead><tr><th>Metric</th>';for(i=0;i<m;i++)head+='<th>M'+(i+1)+'</th>';head+='</tr></thead>';
+  var b='<tbody>';
+  for(d=0;d<defs.length;d++){var D=defs[d],cls=D.tot?'tot':'';b+='<tr class="'+cls+'"><td>'+D.l+'</td>';
+    for(i=0;i<m;i++){var v=D.f(R[i]);var cell=D.money?('$'+f0(v)+'K'):(D.dec0?Math.round(v).toLocaleString():v.toFixed(1));b+='<td>'+cell+'</td>';}
+    b+='</tr>';}
+  $("laborTbl").innerHTML=head+b+'</tbody>';
+  var lc=[];for(i=0;i<m;i++)lc.push(R[i].fte.cost);
+  multiLine("laborChart",[{color:"#1F2A44",vals:lc}],12,function(v){return f0(v);},150);
+}
+function kpis(c,M){
+  var m=M.m1,gm=m.gp/m.rev,eb=m.ebitda;
+  $("kRev").textContent="$"+f0(m.rev)+"K";$("kRevD").innerHTML=(c.states[3].on||c.states[4].on)?'<span class="up">expansion on</span>':'<span style="color:var(--mut)">core only</span>';
+  $("kGM").textContent=pct(gm);$("kGMD").innerHTML='<span class="'+(gm>=0.33?'up':'down')+'">pricing/labor-driven</span>';
+  $("kLab").textContent="$"+f0(m.labor)+"K";$("kLabD").innerHTML='<span style="color:var(--mut)">'+m.fte.total.toFixed(0)+' FTE</span>';
+  $("kEb").textContent=(eb>=0?"$":"−$")+f0(Math.abs(eb))+"K";$("kEbD").innerHTML=eb>=0?'<span class="up">positive</span>':'<span class="down">investing</span>';
+  var co=$("sbCashout"),rs=$("sbRaise"),nd=$("sbNeed");
+  if(M.cashout){co.className="sbcard alert";rs.className="sbcard alert";nd.className="sbcard alert";$("kCashout").textContent="M"+M.cashout;$("kRaise").textContent="M"+M.raiseby;$("kNeed").textContent="$"+(M.capNeed/1000).toFixed(1)+"M";}
+  else{co.className="sbcard ok";rs.className="sbcard ok";nd.className="sbcard ok";$("kCashout").textContent="24+";$("kRaise").textContent="—";$("kNeed").textContent="$0";}
+}
+function nsFromModel(M){var R=M.rows,sr=0,i;for(i=0;i<12;i++)sr+=R[i].rev;return {gm:M.m1.gp/M.m1.rev,eb:M.m1.ebitda/M.m1.rev,rev:sr/1000,g:Math.pow(R[11].rev/R[0].rev,12/11)-1};}
+function ro40(g,eb){return (g+eb)*100;} function ro40b(v){return '<span class="b40 '+(v>=40?'pass':'fail')+'">'+v.toFixed(0)+'</span>';}
+function benchTable(ns){
+  var head='<thead><tr><th>Company</th><th>Profile</th><th>Revenue (FY25)</th><th>Rev growth</th><th>Gross margin</th><th>Adj. EBITDA margin</th><th>Rule of 40</th></tr></thead>';
+  var b='<tbody><tr class="me"><td>GlowMD (this model)</td><td>Illustrative DTC med spa (cash-pay)</td><td>$'+Math.round(ns.rev).toLocaleString()+'M</td><td>'+pct0(ns.g)+'</td><td>'+pct(ns.gm)+'</td><td>'+pct(ns.eb)+'</td><td>'+ro40b(ro40(ns.g,ns.eb))+'</td></tr>';
+  var i,cp;for(i=0;i<COMPS.length;i++){cp=COMPS[i];b+='<tr><td>'+cp.n+'</td><td>'+cp.p+'</td><td>$'+cp.rev.toLocaleString()+'M</td><td>'+pct0(cp.g)+'</td><td>'+(cp.gm==null?'n/a':pct(cp.gm))+'</td><td>'+pct(cp.eb)+'</td><td>'+ro40b(ro40(cp.g,cp.eb))+'</td></tr>';}
+  var gms=COMPS.filter(function(x){return x.gm!=null;}).map(function(x){return x.gm;}),ebs=COMPS.map(function(x){return x.eb;}),gs=COMPS.map(function(x){return x.g;}),r4=COMPS.map(function(x){return ro40(x.g,x.eb);});
+  b+='<tr class="med"><td>Peer median</td><td></td><td></td><td>'+pct0(median(gs))+'</td><td>'+pct(median(gms))+'</td><td>'+pct(median(ebs))+'</td><td>'+median(r4).toFixed(0)+'</td></tr>';
+  $("bmTbl").innerHTML=head+b+'</tbody>';
+}
+function renderBars(id,key,nsVal){
+  var arr=[{nm:"GlowMD (model)",v:nsVal,me:1}],i,cp;for(i=0;i<COMPS.length;i++){cp=COMPS[i];if(cp[key]!=null)arr.push({nm:cp.short,v:cp[key],me:0});}
+  var vals=arr.map(function(a){return a.v;}),cv=COMPS.filter(function(x){return x[key]!=null;}).map(function(x){return x[key];}),med=median(cv),scaleMax=Math.max.apply(null,vals.concat([med]))*1.12;if(scaleMax<=0)scaleMax=1;
+  var h="";for(i=0;i<arr.length;i++){var a=arr[i],w=Math.max(0,a.v/scaleMax*100),ml=med/scaleMax*100;h+='<div class="barrow"><div class="nm">'+a.nm+'</div><div class="bartrack"><div class="barfill" style="width:'+w.toFixed(1)+'%;background:'+(a.me?"#1F2A44":"#9aa3af")+'"></div><div style="position:absolute;top:-2px;bottom:-2px;left:'+ml.toFixed(1)+'%;border-left:1.5px dashed #2E7D88"></div></div><div class="amt">'+pct(a.v)+'</div></div>';}
+  $(id).innerHTML=h;
+}
+function renderVal(ns,M,c){
+  var ms=COMPS.map(function(x){return x.ps;}),lo=Math.min.apply(null,ms),hi=Math.max.apply(null,ms),md=median(ms),revM=ns.rev,raiseM=c.eqOn?(c.eqA/1000):(M.capNeed/1000);
+  var cs=[["Low ("+lo.toFixed(1)+"x · TDOC)",lo],["Median ("+md.toFixed(1)+"x)",md],["High ("+hi.toFixed(1)+"x · HIMS)",hi]];
+  var head='<thead><tr><th>Valuation case</th><th>EV/Revenue</th><th>Implied pre-money</th><th>Post-money</th><th>Dilution at $'+raiseM.toFixed(1)+'M</th></tr></thead>',b='<tbody>',i;
+  for(i=0;i<cs.length;i++){var pre=revM*cs[i][1],post=pre+raiseM,dil=raiseM>0?raiseM/post:0;b+='<tr'+(i===1?' class="me"':'')+'><td>'+cs[i][0]+'</td><td>'+cs[i][1].toFixed(1)+'x</td><td>$'+Math.round(pre).toLocaleString()+'M</td><td>$'+Math.round(post).toLocaleString()+'M</td><td>'+(raiseM>0?pct(dil):'—')+'</td></tr>';}
+  $("valTbl").innerHTML=head+b+'</tbody>';var preMed=revM*md;
+  $("valNote").innerHTML=raiseM>0?'At the peer <b>median '+md.toFixed(1)+'x</b>, $'+Math.round(revM).toLocaleString()+'M of annualized revenue implies a ~$'+Math.round(preMed).toLocaleString()+'M pre-money; a $'+raiseM.toFixed(1)+'M round is ~'+pct(raiseM/(preMed+raiseM))+' dilution.':'Turn on the equity raise (or an expansion state) to size the round and see implied dilution.';
+}
+function renderBench(M,c){var ns=nsFromModel(M);benchTable(ns);renderBars("bmGM","gm",ns.gm);renderBars("bmEB","eb",ns.eb);renderVal(ns,M,c);}
+function multiLine(id,series,n,fmtY,H){
+  var W=900,pl=54,pr=14,pt=16,pb=24,i,k,s;H=H||240;
+  var allv=[0];for(i=0;i<series.length;i++)allv=allv.concat(series[i].vals);
+  var min=Math.min.apply(null,allv),max=Math.max.apply(null,allv);
+  function x(i){return pl+(W-pl-pr)*i/(n-1);} function y(v){return pt+(H-pt-pb)*(1-(v-min)/(max-min||1));}
+  var g="";if(min<0){var y0=y(0);g+='<line x1="'+pl+'" y1="'+y0+'" x2="'+(W-pr)+'" y2="'+y0+'" stroke="#cbd2d8"/>';}
+  for(k=0;k<=4;k++){var v=min+(max-min)*k/4,yy=y(v);g+='<line x1="'+pl+'" y1="'+yy+'" x2="'+(W-pr)+'" y2="'+yy+'" stroke="#eef1f3"/>';g+='<text x="'+(pl-6)+'" y="'+(yy+3)+'" text-anchor="end" font-size="9" fill="#9aa3af">'+fmtY(v)+'</text>';}
+  for(s=0;s<series.length;s++){var d="",j;for(j=0;j<series[s].vals.length;j++){d+=(j?"L":"M")+x(j).toFixed(1)+","+y(series[s].vals[j]).toFixed(1)+" ";}g+='<path d="'+d+'" fill="none" stroke="'+series[s].color+'" stroke-width="2.4"/>';}
+  var lstep=n>14?3:1;for(i=0;i<n;i+=lstep)g+='<text x="'+x(i)+'" y="'+(H-7)+'" text-anchor="middle" font-size="8.5" fill="#9aa3af">M'+(i+1)+'</text>';
+  $(id).innerHTML=g;
+}
+function econRow(label,m1,m6,m12,money){
+  function c(v){return money?usd(v):pct(v);}
+  return '<tr><td>'+label+'</td><td>'+c(m1)+'</td><td>'+c(m6)+'</td><td>'+c(m12)+'</td></tr>';
+}
+function econTbl(id,key,M){
+  var R=M.rows,head='<thead><tr><th>Per visit</th><th>M1</th><th>M6</th><th>M12</th></tr></thead>';
+  function snap(t){var d=R[t-1].mod[key],vis=d.visits||1;return {rv:d.rev*1000/vis,lab:d.labor*1000/vis,non:d.non*1000/vis,con:d.contrib*1000/vis,mar:d.rev?d.contrib/d.rev:0};}
+  var s1=snap(1),s6=snap(6),s12=snap(12);
+  var b='<tbody>'+econRow("Net revenue / visit",s1.rv,s6.rv,s12.rv,1)+econRow("Clinical labor / visit",-s1.lab,-s6.lab,-s12.lab,1)+econRow("Facility / non-labor",-s1.non,-s6.non,-s12.non,1)+'<tr class="me"><td>Contribution / visit</td><td>'+usd(s1.con)+'</td><td>'+usd(s6.con)+'</td><td>'+usd(s12.con)+'</td></tr><tr class="med"><td>Contribution margin</td><td>'+pct(s1.mar)+'</td><td>'+pct(s6.mar)+'</td><td>'+pct(s12.mar)+'</td></tr></tbody>';
+  $(id).innerHTML=head+b;
+}
+function renderEcon(M){
+  var R=M.rows,ip=[],th=[],eb=[],i;
+  for(i=0;i<12;i++){var r=R[i];ip.push(r.mod.ip.visits?r.mod.ip.contrib*1000/r.mod.ip.visits:0);th.push(r.mod.th.visits?r.mod.th.contrib*1000/r.mod.th.visits:0);eb.push(r.visits?r.ebitda*1000/r.visits:0);}
+  multiLine("econChart",[{color:"#1F2A44",vals:ip},{color:"#2E7D88",vals:th},{color:"#9C6500",vals:eb}],12,function(v){return usd(v);},250);
+  econTbl("thTbl","th",M);econTbl("ipTbl","ip",M);
+  var e1=eb[0],e12=eb[11];
+  $("econNote").innerHTML="Contribution/visit is roughly stable (rates &amp; productivity fixed), but <b>company EBITDA/visit rises from "+usd(e1)+" to "+usd(e12)+"</b> over the year as fixed corporate cost spreads across growing volume — operating leverage. Telehealth carries lower revenue/visit but also lower cost/visit (no facility, higher throughput).";
+}
+function stateColor(i){return STCOL[i%STCOL.length];}
+function renderState(M){
+  var R=M.rows,n=STATES.length,i,t,NMx=R.length,lab=stateMetric==="rev"?"Revenue":(stateMetric==="gp"?"Gross profit":"EBITDA");
+  var series=[];for(i=0;i<n;i++){var vals=[];for(t=0;t<NMx;t++)vals.push(R[t].states[i][stateMetric]);series.push({color:stateColor(i),vals:vals});}
+  multiLine("stateChart",series,NMx,function(v){return f0(v);},250);
+  var leg="";for(i=0;i<n;i++)leg+='<span><i style="background:'+stateColor(i)+'"></i>'+STATES[i].name+'</span>';
+  $("stateLegend").innerHTML=leg;
+  var be='<thead><tr><th>State</th><th>Breakeven month</th><th>Yr 1 EBITDA</th><th>Yr 2 EBITDA</th></tr></thead><tbody>';
+  for(i=0;i<n;i++){var bm="—",y1=0,y2=0;
+    for(t=0;t<NMx;t++){var st=R[t].states[i];if(t<12)y1+=st.ebitda;else y2+=st.ebitda;if(bm==="—"&&st.rev>0&&st.ebitda>=0)bm="M"+(t+1);}
+    be+='<tr><td>'+STATES[i].name+'</td><td>'+bm+'</td><td>'+fmt(y1)+'</td><td>'+fmt(y2)+'</td></tr>';}
+  $("stateBE").innerHTML=be+'</tbody>';
+  var head='<thead><tr><th>'+lab+' ($000s)</th>';for(t=0;t<NMx;t++)head+='<th>M'+(t+1)+'</th>';head+='<th class="yr">Yr 1</th><th class="yr">Yr 2</th></tr></thead>';
+  var b='<tbody>';for(i=0;i<n;i++){b+='<tr><td>'+STATES[i].name+'</td>';var s1=0,s2=0;for(t=0;t<NMx;t++){var v=R[t].states[i][stateMetric];if(t<12)s1+=v;else s2+=v;b+='<td>'+fmt(v)+'</td>';}b+='<td class="yr">'+fmt(s1)+'</td><td class="yr">'+fmt(s2)+'</td></tr>';}
+  b+='<tr class="tot"><td>Total</td>';var g1=0,g2=0;for(t=0;t<NMx;t++){var tv=0;for(i=0;i<n;i++)tv+=R[t].states[i][stateMetric];if(t<12)g1+=tv;else g2+=tv;b+='<td>'+fmt(tv)+'</td>';}b+='<td class="yr">'+fmt(g1)+'</td><td class="yr">'+fmt(g2)+'</td></tr></tbody>';
+  $("stateTbl").innerHTML=head+b;
+}
+function renderCAC(M,c){
+  var m=M.m1,gm=m.rev?m.gp/m.rev:0,bpv=m.visits>0?m.rev*1000/m.visits:0;
+  var annual=bpv*c.visitsYr, ltv=annual*c.lifeYrs*gm, ratio=c.cac>0?ltv/c.cac:0;
+  var moC=bpv*(c.visitsYr/12)*gm, payback=moC>0?c.cac/moC:0;
+  $("kNew").textContent=f0(m.newCust);$("kCac").textContent="$"+f0(c.cac);
+  $("kLtv").textContent=ratio.toFixed(1)+"x";$("kPay").textContent=payback.toFixed(1)+" mo";
+  var rows=[["Marketing spend / mo","$"+f0(m.marketing)+"K"],["New customers / mo",f0(m.newCust)],
+    ["CAC (per new customer)","$"+f0(c.cac)],["Blended avg ticket","$"+f0(bpv)],
+    ["Visits / customer / yr",c.visitsYr.toFixed(1)],["Customer lifetime (yrs)",c.lifeYrs.toFixed(1)],
+    ["Annual value / customer","$"+f0(annual)],["Lifetime value (LTV)","$"+f0(ltv)],
+    ["Gross margin",(gm*100).toFixed(0)+"%"]];
+  var b='<thead><tr><th>Metric</th><th>Value</th></tr></thead><tbody>',i;
+  for(i=0;i<rows.length;i++)b+='<tr><td>'+rows[i][0]+'</td><td>'+rows[i][1]+'</td></tr>';
+  b+='<tr class="me"><td>LTV : CAC</td><td>'+ratio.toFixed(1)+'x</td></tr>';
+  b+='<tr class="me"><td>CAC payback</td><td>'+payback.toFixed(1)+' months</td></tr></tbody>';
+  $("cacTbl").innerHTML=b;
+  var nc=[],cum=[],run=0;for(i=0;i<12;i++){nc.push(M.rows[i].newCust);run+=M.rows[i].newCust;cum.push(run);}
+  multiLine("cacChart",[{color:"#2E7D88",vals:nc},{color:"#1F2A44",vals:cum}],12,function(v){return f0(v);},190);
+}
+function refresh(){
+  var c=readControls();
+  $("vRpvIP").textContent="$"+$("rpvIP").value;$("vRpvVirt").textContent="$"+$("rpvVirt").value;
+  $("vMkt").textContent=$("mktPct").value+"%";$("vCac").textContent="$"+$("cac").value;
+  $("vVy").textContent=(+$("visitsYr").value).toFixed(1);$("vLy").textContent=(+$("lifeYrs").value).toFixed(1);
+  $("vTH").textContent=$("th").value+"%";$("vUtil").textContent=$("util").value+"%";
+  $("vIpcRate").textContent="$"+$("ipcRate").value+"/hr";$("vThcRate").textContent="$"+$("thcRate").value+"/hr";
+  $("vIpcDay").textContent=(+$("ipcDay").value).toFixed(1);$("vThcDay").textContent=(+$("thcDay").value).toFixed(1);
+  $("vRnR").textContent=(+$("rnR").value).toFixed(2);$("vRnC").textContent=$("rnC").value;
+  $("vBhtR").textContent=(+$("bhtR").value).toFixed(2);$("vBhtC").textContent=$("bhtC").value;
+  $("vCcR").textContent=(+$("ccR").value).toFixed(2);$("vCcC").textContent=$("ccC").value;
+  $("vSupR").textContent=(+$("supR").value).toFixed(2);$("vSupC").textContent=$("supC").value;
+  $("vIpFac").textContent="$"+$("ipFac").value;$("vThFac").textContent="$"+$("thFac").value;
+  $("vEqA").textContent="$"+(+$("eqA").value).toFixed(1)+"M";$("vEqM").textContent="M"+$("eqM").value;
+  $("vDbA").textContent="$"+(+$("dbA").value).toFixed(1)+"M";$("vDbM").textContent="M"+$("dbM").value;
+  var M=model(c);
+  kpis(c,M);chart(M,c);pnlTable(M);laborTable(M);renderBench(M,c);renderEcon(M);renderState(M);renderCAC(M,c);saveState();
+}
+(function(){
+  loadState();
+  var i,btns,segs;
+  var COMMAF=[];for(i=0;i<5;i++){COMMAF.push("s"+i+"_r0","s"+i+"_fx","s"+i+"_en");}
+  function fmtC(el){var v=(""+el.value).replace(/,/g,"");if(v==="")return;var nn=Number(v);if(!isNaN(nn))el.value=nn.toLocaleString();}
+  for(i=0;i<COMMAF.length;i++){(function(el){el.addEventListener("change",function(){fmtC(el);});fmtC(el);})($(COMMAF[i]));}
+  for(i=0;i<CTRLS.length;i++){$(CTRLS[i]).addEventListener("input",refresh);$(CTRLS[i]).addEventListener("change",refresh);}
+  btns=document.querySelectorAll(".tabbtn");
+  for(i=0;i<btns.length;i++){btns[i].addEventListener("click",function(){
+    var t=this.getAttribute("data-tab"),j,bb=document.querySelectorAll(".tabbtn"),vv=document.querySelectorAll(".view");
+    for(j=0;j<bb.length;j++)bb[j].className="tabbtn"+(bb[j].getAttribute("data-tab")===t?" active":"");
+    for(j=0;j<vv.length;j++)vv[j].className="view";
+    $("view-"+t).className="view active";});}
+  segs=document.querySelectorAll("#stateSeg .segbtn");
+  for(i=0;i<segs.length;i++){segs[i].addEventListener("click",function(){
+    var mtr=this.getAttribute("data-metric"),j,ss=document.querySelectorAll("#stateSeg .segbtn");
+    for(j=0;j<ss.length;j++)ss[j].className="segbtn"+(ss[j].getAttribute("data-metric")===mtr?" active":"");
+    stateMetric=mtr;refresh();});}
+  $("copyLink").addEventListener("click",copyLink);
+  refresh();
+})();
+</script>
+</body>
+</html>

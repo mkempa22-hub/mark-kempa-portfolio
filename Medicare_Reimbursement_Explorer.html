@@ -1,0 +1,139 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Medicare Reimbursement Explorer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Lora:wght@600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+:root{--bg:#0f1216;--panel:#161a21;--panel2:#1b2028;--line:#272d38;--ink:#e9edf3;--muted:#97a2b2;--soft:#c4ccd8;
+ --accent:#ff6719;--teal:#2dd4bf;--serif:'Lora',Georgia,serif;--sans:'Inter',-apple-system,Segoe UI,Roboto,sans-serif;color-scheme:dark}
+body{margin:0;font-family:var(--sans);background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+a{color:var(--teal);text-decoration:none}
+.top{display:flex;align-items:center;justify-content:space-between;padding:14px 22px;border-bottom:1px solid var(--line);background:#0b0d11;position:sticky;top:0;z-index:10}
+.top .t{font-family:var(--serif);font-weight:700;font-size:17px}.top .t span{color:var(--teal)}
+.top a{font-size:12.5px;font-weight:600;color:var(--muted)}
+.wrap{max-width:1020px;margin:0 auto;padding:22px 22px 60px}
+.intro{color:var(--soft);font-size:13.5px;max-width:74ch;margin:0 0 20px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:800px){.grid{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 20px}
+.kick{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);font-weight:800;margin:0 0 12px}
+label{display:block;font-size:11.5px;color:var(--muted);font-weight:600;margin:12px 0 5px}
+select,input{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:9px;color:var(--ink);font-size:13.5px;padding:10px 11px;font-family:inherit}
+select:focus,input:focus{outline:none;border-color:var(--teal)}
+.toggle{display:flex;gap:8px;margin-top:5px}
+.toggle button{flex:1;background:var(--bg);border:1px solid var(--line);color:var(--muted);font-weight:700;font-size:12.5px;padding:9px;border-radius:9px;cursor:pointer;font-family:inherit}
+.toggle button.on{background:var(--teal);color:#08201d;border-color:var(--teal)}
+.pay{font-family:var(--serif);font-size:46px;font-weight:700;color:var(--teal);line-height:1;margin:4px 0 2px}
+.paysub{font-size:12px;color:var(--muted)}
+.brk{margin-top:16px}
+.brow{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:8px;font-size:12px;padding:7px 0;border-top:1px solid var(--line)}
+.brow.h{color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.03em;font-size:10px}
+.brow b{font-weight:700}
+.brow .bar{height:7px;border-radius:4px;margin-top:5px}
+.formula{margin-top:14px;font-size:11.5px;color:var(--muted);background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:10px 12px;line-height:1.6}
+.formula b{color:var(--soft)}
+table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:4px}
+th,td{text-align:right;padding:8px 8px;border-bottom:1px solid var(--line)}
+th{font-size:10px;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);font-weight:700}
+th:first-child,td:first-child{text-align:left}
+td .code{font-weight:800;color:var(--soft)}
+tr.sel{background:rgba(45,212,191,.07)}
+td.amt{font-weight:800;color:var(--teal)}
+.foot{font-size:11px;color:var(--muted);margin-top:22px;line-height:1.6}
+.gloss{display:grid;grid-template-columns:1fr 1fr;gap:2px 26px;margin-top:2px}
+@media(max-width:760px){.gloss{grid-template-columns:1fr}}
+.gitem{font-size:12.5px;color:var(--soft);padding:9px 0;border-top:1px solid var(--line);line-height:1.5}
+.gitem b{color:var(--ink);display:block;margin-bottom:2px;font-size:13px}
+.gitem .tag{color:var(--teal);font-weight:700}
+</style></head><body>
+<div class="top"><div class="t">Medicare <span>Reimbursement Explorer</span></div><a href="index.html">← Back to portfolio</a></div>
+<div class="wrap">
+  <p class="intro">There's no single "Medicare rate" for a code. Physician payment is built as <b>(Work RVU × Work GPCI + Practice-Expense RVU × PE GPCI + Malpractice RVU × MP GPCI) × Conversion Factor</b> — and it differs by facility vs. office setting and by geographic locality. Pick a service to see how the rate is assembled.</p>
+  <div class="grid">
+    <div class="card">
+      <p class="kick">Inputs</p>
+      <label>Service</label>
+      <select id="svc" onchange="render()"></select>
+      <label>Place of service</label>
+      <div class="toggle"><button id="bN" class="on" onclick="setFac(false)">Office (non-facility)</button><button id="bF" onclick="setFac(true)">Facility</button></div>
+      <label>Locality (GPCI)</label>
+      <select id="loc" onchange="render()"></select>
+      <label>Conversion factor ($)</label>
+      <input id="cf" type="number" step="0.01" value="33.00" oninput="render()">
+    </div>
+    <div class="card">
+      <p class="kick">Estimated allowed amount</p>
+      <div class="pay" id="pay">$0</div>
+      <div class="paysub" id="paysub"></div>
+      <div class="brk" id="brk"></div>
+      <div class="formula" id="formula"></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:18px">
+    <p class="kick">Common services · at selected setting &amp; locality</p>
+    <table id="tbl"><thead><tr><th>Code · service</th><th>Work</th><th>PE</th><th>MP</th><th>Allowed</th></tr></thead><tbody></tbody></table>
+  </div>
+  <div class="card" style="margin-top:18px">
+    <p class="kick">Guide — what each input means</p>
+    <div class="gloss">
+      <div class="gitem"><b>Service (the code)</b>Each CPT/HCPCS code is a specific billable visit or service, and comes with three pre-set "relative value" weights (below). Pick the service you want to price.</div>
+      <div class="gitem"><b>Place of service — Office vs. Facility</b><span class="tag">Office (non-facility):</span> care in your own clinic, where you cover the overhead → higher practice-expense weight and usually a higher payment. <span class="tag">Facility:</span> hospital/surgery center, where the facility covers overhead and bills separately → lower physician payment.</div>
+      <div class="gitem"><b>Locality (GPCI)</b>Geographic Practice Cost Index — a multiplier that adjusts each component for local costs (wages, rent, malpractice). Above <b>1.000</b> = a pricier area = higher pay; below 1.000 = lower. Miami's high malpractice GPCI (2.04), for example, lifts the MP piece.</div>
+      <div class="gitem"><b>Conversion factor (CF)</b>The single national dollar amount CMS sets each year that turns total RVUs into dollars. The same CF applies to every code — change it and every rate moves together.</div>
+      <div class="gitem"><b>Work RVU</b>The physician's time, skill, and effort for the service — the "labor" component.</div>
+      <div class="gitem"><b>Practice-expense (PE) RVU</b>Overhead — clinical staff, rent, supplies, and equipment. This is the piece that drops in a facility setting.</div>
+      <div class="gitem"><b>Malpractice (MP) RVU</b>The cost of liability insurance attributable to the service. Usually the smallest of the three.</div>
+      <div class="gitem"><b>Allowed amount</b>What Medicare recognizes for the service. Medicare typically pays <b>80%</b> and the patient or a secondary plan covers the remaining ~20%.</div>
+    </div>
+  </div>
+
+  <p class="foot"><b>Illustrative.</b> RVUs are approximate values from the CMS Medicare Physician Fee Schedule; the conversion factor and GPCIs are editable and set to round illustrative figures. Actual payment varies by performance year, exact locality, modifiers, and sequestration. CPT® codes are maintained &amp; copyrighted by the AMA and shown here factually for reference; service labels are plain-English summaries, not official CPT descriptors. Built by Mark Kempa as an example of healthcare-finance tooling.</p>
+</div>
+<script>
+const SVC=[
+ {c:"99213",n:"Office visit, established · low–moderate",w:1.30,peN:1.20,peF:0.50,mp:0.10},
+ {c:"99214",n:"Office visit, established · moderate–high",w:1.92,peN:1.73,peF:0.74,mp:0.14},
+ {c:"99215",n:"Office visit, established · high",w:2.80,peN:2.40,peF:1.10,mp:0.20},
+ {c:"99204",n:"Office visit, new patient · moderate",w:2.60,peN:2.10,peF:1.00,mp:0.18},
+ {c:"G0439",n:"Annual Wellness Visit · subsequent",w:2.60,peN:1.65,peF:1.65,mp:0.15},
+ {c:"99490",n:"Chronic Care Management · 20 min staff",w:0.61,peN:1.20,peF:0.40,mp:0.05},
+ {c:"99491",n:"Chronic Care Management · 30 min physician",w:1.45,peN:1.10,peF:0.55,mp:0.10},
+ {c:"99457",n:"Remote Patient Monitoring · 20 min mgmt",w:0.61,peN:0.80,peF:0.30,mp:0.04},
+ {c:"99495",n:"Transitional Care Management · moderate",w:2.36,peN:3.05,peF:1.60,mp:0.18},
+ {c:"G2211",n:"Visit complexity add-on · longitudinal care",w:0.33,peN:0.17,peF:0.07,mp:0.02},
+ {c:"99213-95",n:"Office visit (telehealth) · established",w:1.30,peN:1.20,peF:0.50,mp:0.10}
+];
+const LOC=[
+ {n:"National average",gw:1.000,gpe:1.000,gmp:1.000},
+ {n:"Manhattan, NY",gw:1.058,gpe:1.190,gmp:1.560},
+ {n:"Miami, FL",gw:1.000,gpe:1.070,gmp:2.040},
+ {n:"Houston, TX",gw:1.000,gpe:0.992,gmp:1.230},
+ {n:"Denver, CO",gw:1.000,gpe:1.040,gmp:0.830},
+ {n:"Rural (GPCI floor)",gw:1.000,gpe:0.885,gmp:0.600}
+];
+let fac=false;
+const $=id=>document.getElementById(id);
+$('svc').innerHTML=SVC.map((s,i)=>`<option value="${i}">${s.c} — ${s.n}</option>`).join('');
+$('loc').innerHTML=LOC.map((l,i)=>`<option value="${i}">${l.n}</option>`).join('');
+$('svc').value=1;
+function setFac(v){fac=v;$('bN').classList.toggle('on',!v);$('bF').classList.toggle('on',v);render();}
+function pe(s){return fac?s.peF:s.peN;}
+function calc(s,l,cf){const wv=s.w*l.gw, pv=pe(s)*l.gpe, mv=s.mp*l.gmp;const tot=(wv+pv+mv)*cf;return {wv,pv,mv,tot};}
+function render(){
+ const s=SVC[+$('svc').value], l=LOC[+$('loc').value], cf=parseFloat($('cf').value)||0;
+ const r=calc(s,l,cf);
+ $('pay').textContent='$'+r.tot.toFixed(2);
+ $('paysub').textContent=`${s.c} · ${fac?'facility':'non-facility'} · ${l.n}`;
+ const cols={w:'#8b8cf7',p:'#2dd4bf',m:'#ff6719'};
+ const max=Math.max(r.wv,r.pv,r.mv)||1;
+ $('brk').innerHTML=`<div class="brow h"><span>Component</span><span>RVU×GPCI</span><span>$ (×CF)</span><span>Share</span></div>`+
+  [['Work',r.wv,s.w,l.gw,cols.w],['Practice expense',r.pv,pe(s),l.gpe,cols.p],['Malpractice',r.mv,s.mp,l.gmp,cols.m]].map(([nm,v,rvu,g,c])=>
+   `<div class="brow"><span>${nm}</span><span>${rvu.toFixed(2)}×${g.toFixed(3)}</span><b>$${(v*cf).toFixed(2)}</b><span><div class="bar" style="width:${Math.max(6,v/max*100)}%;background:${c}"></div></span></div>`).join('');
+ $('formula').innerHTML=`( <b>${r.wv.toFixed(2)}</b> work + <b>${r.pv.toFixed(2)}</b> PE + <b>${r.mv.toFixed(2)}</b> MP ) total RVU <b>${(r.wv+r.pv+r.mv).toFixed(2)}</b> × CF <b>$${cf.toFixed(2)}</b> = <b style="color:var(--teal)">$${r.tot.toFixed(2)}</b>`;
+ const tb=$('tbl').querySelector('tbody');
+ tb.innerHTML=SVC.map((x,i)=>{const rr=calc(x,l,cf);return `<tr class="${i==+$('svc').value?'sel':''}"><td><span class="code">${x.c}</span> · ${x.n}</td><td>${x.w.toFixed(2)}</td><td>${pe(x).toFixed(2)}</td><td>${x.mp.toFixed(2)}</td><td class="amt">$${rr.tot.toFixed(2)}</td></tr>`;}).join('');
+}
+render();
+</script>
+</body></html>

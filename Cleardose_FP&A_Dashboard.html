@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cleardose Health — FP&A Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--ink:#0e1726;--soft:#475569;--line:#e2e8f0;--accent:#1f4e79;--accent2:#2e75b6;--soft-bg:#eaf1f8;
+--ok:#15803d;--okbg:#dcfce7;--warn:#b45309;--warnbg:#fef3c7;--bad:#b91c1c;--badbg:#fee2e2;--card:#fff;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--ink);background:#f1f5f9;line-height:1.5}
+.wrap{max-width:1200px;margin:0 auto;padding:0 20px}
+header{background:linear-gradient(135deg,var(--accent),#163a5c);color:#fff;padding:22px 0 0}
+header h1{font-size:1.4rem;letter-spacing:-.02em}
+header p{opacity:.85;font-size:.88rem;margin-top:2px}
+.tabs{display:flex;gap:4px;margin-top:16px;flex-wrap:wrap}
+.tab{padding:11px 18px;cursor:pointer;font-weight:600;font-size:.92rem;color:#cfe0f0;border-radius:9px 9px 0 0;background:rgba(255,255,255,.08)}
+.tab.active{background:#f1f5f9;color:var(--accent)}
+main{padding:24px 0 60px}
+.panel{display:none}.panel.active{display:block}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 15px}
+.kpi .lab{font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;color:var(--soft);font-weight:600}
+.kpi .num{font-size:1.4rem;font-weight:800;letter-spacing:-.02em;margin-top:3px;font-variant-numeric:tabular-nums}
+.kpi .note{font-size:.7rem;color:var(--soft);margin-top:1px}
+.kpi.ok{border-color:#bbf7d0;background:var(--okbg)}.kpi.ok .num{color:var(--ok)}
+.kpi.warn{border-color:#fde68a;background:var(--warnbg)}.kpi.warn .num{color:var(--warn)}
+.kpi.bad{border-color:#fecaca;background:var(--badbg)}.kpi.bad .num{color:var(--bad)}
+.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:#fff}
+.seg button{border:none;background:#fff;padding:8px 14px;font:inherit;font-size:.85rem;font-weight:600;color:var(--soft);cursor:pointer}
+.seg button.on{background:var(--accent);color:#fff}
+select{padding:8px 12px;border:1px solid var(--line);border-radius:9px;font:inherit;font-size:.85rem;background:#fff;color:var(--ink)}
+.maprow{display:grid;grid-template-columns:1fr 320px;gap:18px}
+@media(max-width:880px){.maprow{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:18px}
+.card h4{font-size:.98rem;margin-bottom:2px}.card .cs{font-size:.77rem;color:var(--soft);margin-bottom:10px}
+#mapWrap{position:relative}
+#usmap{width:100%;height:auto}
+#usmap .st{cursor:pointer;transition:.12s}
+#usmap .st:hover{opacity:.85}
+#usmap text{font-size:11px;font-weight:700;pointer-events:none;font-family:Arial}
+.legend{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:.74rem;color:var(--soft)}
+.legbar{height:12px;flex:1;border-radius:6px;max-width:280px}
+#tip{position:absolute;pointer-events:none;background:#0e1726;color:#fff;padding:7px 10px;border-radius:8px;font-size:.78rem;opacity:0;transition:.1s;white-space:nowrap;z-index:10}
+#tip b{display:block;font-size:.85rem;margin-bottom:2px}
+.side h4{font-size:1.05rem;margin-bottom:2px}.side .sub{font-size:.78rem;color:var(--soft);margin-bottom:12px}
+.mini{font-size:.82rem;margin:9px 0 3px;font-weight:600;color:var(--soft)}
+.bar{height:20px;background:var(--soft-bg);border-radius:5px;position:relative;margin-bottom:5px;overflow:hidden}
+.bar i{position:absolute;left:0;top:0;bottom:0;background:var(--accent2);border-radius:5px}
+.bar span{position:absolute;left:7px;top:2px;font-size:.72rem;font-weight:600;color:var(--ink)}
+.bar span.r{right:7px;left:auto;color:var(--soft)}
+.charts2{display:grid;grid-template-columns:1fr 1fr;gap:18px}@media(max-width:880px){.charts2{grid-template-columns:1fr}}
+.chartbox{position:relative;height:300px}.chartbox.sm{height:240px}
+.controls{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;align-self:start}
+.controls h3{font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--accent2);margin-bottom:12px}
+.grid2{display:grid;grid-template-columns:300px 1fr;gap:20px}@media(max-width:880px){.grid2{grid-template-columns:1fr}}
+.ctl{margin-bottom:15px}.ctl label{display:flex;justify-content:space-between;font-size:.83rem;font-weight:600;color:var(--soft);margin-bottom:5px}
+.ctl label .val{color:var(--accent)}input[type=range]{width:100%;accent-color:var(--accent)}
+.ctl .sub{font-size:.71rem;color:var(--soft);margin-top:3px}
+.chk{display:flex;align-items:center;gap:8px;font-size:.84rem;margin-bottom:11px}.chk input{width:16px;height:16px;accent-color:var(--accent)}
+.reset{margin-top:6px;width:100%;padding:9px;border:1px solid var(--line);background:#f8fafc;border-radius:9px;font:inherit;font-weight:600;color:var(--soft);cursor:pointer}
+.banner{padding:11px 15px;border-radius:10px;font-weight:600;font-size:.88rem;margin-bottom:16px}
+.banner.ok{background:var(--okbg);color:var(--ok)}.banner.warn{background:var(--warnbg);color:var(--warn)}.banner.bad{background:var(--badbg);color:var(--bad)}
+.kgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:10px;margin-bottom:16px}
+.note{font-size:.75rem;color:var(--soft);margin-top:6px}
+footer{font-size:.75rem;color:var(--soft);padding:16px 0;text-align:center}
+/* dark mode */
+:root{--ink:#e9edf3;--soft:#aab4c2;--line:#2a3340;--card:#161a21;--soft-bg:#16202c}
+html,body{background:#0f1216!important;color:#e9edf3}
+h1,h2,h3,h4,h5,th,strong,b{color:#e9edf3}
+table th,thead{background:#1b2028}
+.seg{background:#161a21!important}
+</style></head><body>
+<header><div class="wrap">
+<h1>Cleardose Health — FP&A Dashboard</h1>
+<p>Hybrid health-tech · SaaS + Telehealth + CCM + Value-Based Care · 10 states · interactive, recalcs live in your browser</p>
+<div class="tabs">
+<div class="tab active" data-t="dash" onclick="showTab('dash')">Dashboard &amp; Map</div>
+<div class="tab" data-t="svc" onclick="showTab('svc')">Service Lines</div>
+<div class="tab" data-t="cash" onclick="showTab('cash')">Cash Runway</div>
+<div class="tab" data-t="unit" onclick="showTab('unit')">Unit Economics</div>
+<div class="tab" data-t="ai" onclick="showTab('ai')">AI Economics</div>
+</div></div></header>
+<main><div class="wrap">
+
+<!-- DASHBOARD + MAP -->
+<section class="panel active" id="dash">
+  <div class="toolbar">
+    <div class="seg" id="metricSeg">
+      <button data-m="rev" class="on" onclick="setMetric('rev')">Revenue</button>
+      <button data-m="margin" onclick="setMetric('margin')">Margin $</button>
+      <button data-m="pct" onclick="setMetric('pct')">Margin %</button>
+    </div>
+    <select id="periodSel" onchange="renderMap();renderKpis()"></select>
+    <span class="note" id="scopeNote"></span>
+  </div>
+  <div class="kpis" id="dashKpis"></div>
+  <div class="maprow">
+    <div class="card"><h4 id="mapTitle">Revenue by state</h4><div class="cs">Hover a state for detail · click to drill in below</div>
+      <div id="mapWrap"><div id="tip"></div></div>
+      <div class="legend"><span id="legLo"></span><div class="legbar" id="legBar"></div><span id="legHi"></span></div>
+    </div>
+    <div class="card side" id="sidePanel"></div>
+  </div>
+  <div class="card"><h4>Revenue mix by service line</h4><div class="cs">Monthly, stacked</div><div class="chartbox"><canvas id="mixChart"></canvas></div></div>
+</section>
+
+<!-- SERVICE LINES -->
+<section class="panel" id="svc">
+  <div class="kgrid" id="svcKpis"></div>
+  <div class="charts2">
+    <div class="card"><h4>Revenue by service line</h4><div class="cs">Monthly, stacked</div><div class="chartbox sm"><canvas id="svcRevChart"></canvas></div></div>
+    <div class="card"><h4>Gross margin % by service line</h4><div class="cs">SaaS high-margin; VBC carries medical cost (MLR)</div><div class="chartbox sm"><canvas id="svcMarginChart"></canvas></div></div>
+    <div class="card"><h4>Revenue by payor</h4><div class="cs">Full period</div><div class="chartbox sm"><canvas id="payorChart"></canvas></div></div>
+    <div class="card"><h4>Revenue by product</h4><div class="cs">Commercial / Medicare / Medicaid / Uninsured</div><div class="chartbox sm"><canvas id="productChart"></canvas></div></div>
+  </div>
+  <div class="card"><h4>Contribution margin $ by service line</h4><div class="cs">Revenue minus direct delivery cost, monthly</div><div class="chartbox sm"><canvas id="svcCMChart"></canvas></div></div>
+  <div class="note">SaaS margin excludes corporate overhead allocation; VBC margin is net of medical claims (MLR). Directional, synthetic data.</div>
+</section>
+
+<!-- CASH RUNWAY -->
+<section class="panel" id="cash"><div class="grid2">
+  <div class="controls"><h3>Sensitivity toggles</h3>
+    <div class="ctl"><label>Starting cash <span class="val" id="v_cash0"></span></label><input type="range" id="cash0" min="500000" max="30000000" step="250000"></div>
+    <div class="ctl"><label>Revenue growth (monthly) <span class="val" id="v_revG"></span></label><input type="range" id="revG" min="-5" max="15" step="0.5"></div>
+    <div class="ctl"><label>Opex growth (monthly) <span class="val" id="v_opexG"></span></label><input type="range" id="opexG" min="-2" max="10" step="0.5"></div>
+    <div class="ctl"><label>Gross margin <span class="val" id="v_gm"></span></label><input type="range" id="gm" min="20" max="90" step="1"></div>
+    <div class="ctl"><label>Burn stress (× opex) <span class="val" id="v_stress"></span></label><input type="range" id="stress" min="0.7" max="1.5" step="0.05"></div>
+    <div class="ctl"><label>New raise ($M) <span class="val" id="v_raise"></span></label><input type="range" id="raise" min="0" max="60" step="1"></div>
+    <div class="ctl"><label>Raise closes in (months) <span class="val" id="v_rmonth"></span></label><input type="range" id="rmonth" min="1" max="24" step="1"></div>
+    <div class="ctl"><label>Projection horizon <span class="val" id="v_horizon"></span></label><input type="range" id="horizon" min="6" max="36" step="1"></div>
+    <h3 style="margin-top:18px">Growth levers</h3>
+    <div class="ctl"><label>New states entered <span class="val" id="v_nstates"></span></label><input type="range" id="nstates" min="0" max="10" step="1"></div>
+    <div class="ctl"><label>Entry month <span class="val" id="v_entry"></span></label><input type="range" id="entry" min="1" max="24" step="1"></div>
+    <div class="ctl"><label>Revenue / new state (mature) <span class="val" id="v_srev"></span></label><input type="range" id="srev" min="20000" max="500000" step="10000"><div class="sub">Ramps to this over ~6 months after entry.</div></div>
+    <div class="ctl"><label>New-state contribution margin <span class="val" id="v_smarg"></span></label><input type="range" id="smarg" min="20" max="90" step="1"></div>
+    <div class="ctl"><label>Core staffing: net new hires / mo <span class="val" id="v_hire"></span></label><input type="range" id="hire" min="0" max="15" step="1"></div>
+    <div class="ctl"><label>Fully-loaded cost / hire ($/yr) <span class="val" id="v_hcost"></span></label><input type="range" id="hcost" min="80000" max="220000" step="5000"></div>
+    <button class="reset" onclick="resetCash()">↺ Reset to baseline</button>
+  </div>
+  <div><div id="cashBanner" class="banner"></div><div class="kpis" id="cashKpis"></div>
+    <div class="card"><h4>Projected cash balance</h4><div class="cs">Actuals + scenario (with raise) vs no-raise</div><div class="chartbox"><canvas id="cashChart"></canvas></div></div>
+    <div class="card"><h4>Monthly net cash flow (projected)</h4><div class="chartbox sm"><canvas id="burnChart"></canvas></div></div>
+  </div>
+</div></section>
+
+<!-- UNIT ECON -->
+<section class="panel" id="unit"><div class="grid2">
+  <div class="controls"><h3>Assumptions</h3>
+    <div class="chk"><input type="checkbox" id="includeSM" checked><label for="includeSM" style="margin:0">CAC uses fully-loaded S&amp;M</label></div>
+    <div class="ctl"><label>Target LTV : CAC <span class="val" id="v_target"></span></label><input type="range" id="target" min="2" max="6" step="0.5"></div>
+    <div class="ctl"><label>Churn floor (monthly) <span class="val" id="v_churnFloor"></span></label><input type="range" id="churnFloor" min="0.5" max="3" step="0.1"></div>
+    <button class="reset" onclick="resetUnit()">↺ Reset</button>
+  </div>
+  <div><div class="kgrid" id="unitKpis"></div>
+    <div class="charts2">
+      <div class="card"><h4>LTV : CAC</h4><div class="chartbox sm"><canvas id="ltvcacChart"></canvas></div></div>
+      <div class="card"><h4>CAC vs LTV</h4><div class="chartbox sm"><canvas id="cacltvChart"></canvas></div></div>
+      <div class="card"><h4>SaaS gross margin %</h4><div class="chartbox sm"><canvas id="gmChart"></canvas></div></div>
+      <div class="card"><h4>ARR per FTE</h4><div class="chartbox sm"><canvas id="arrfteChart"></canvas></div></div>
+    </div>
+  </div>
+</div></section>
+
+<!-- AI ECON -->
+<section class="panel" id="ai"><div class="grid2">
+  <div class="controls"><h3>AI usage &amp; ROI inputs</h3>
+    <div class="ctl"><label>Monthly tokens (M) <span class="val" id="v_tokens"></span></label><input type="range" id="tokens" min="5" max="800" step="5"></div>
+    <div class="ctl"><label>Token growth (monthly) <span class="val" id="v_tokG"></span></label><input type="range" id="tokG" min="0" max="20" step="1"></div>
+    <div class="ctl"><label>Cost / 1M tokens <span class="val" id="v_cpm"></span></label><input type="range" id="cpm" min="0.5" max="15" step="0.5"></div>
+    <div class="ctl"><label>Staff hours saved / mo <span class="val" id="v_hrs"></span></label><input type="range" id="hrs" min="0" max="2500" step="50"></div>
+    <div class="ctl"><label>Loaded cost / hour <span class="val" id="v_hrc"></span></label><input type="range" id="hrc" min="30" max="150" step="5"></div>
+    <div class="ctl"><label>Revenue uplift (% of rev) <span class="val" id="v_upl"></span></label><input type="range" id="upl" min="0" max="15" step="0.5"></div>
+    <div class="ctl"><label>Scale savings with usage <span class="val" id="v_scale"></span></label><input type="range" id="scaleSav" min="0" max="100" step="10"></div>
+    <button class="reset" onclick="resetAI()">↺ Reset</button>
+  </div>
+  <div><div id="aiBanner" class="banner"></div><div class="kpis" id="aiKpis"></div>
+    <div class="card"><h4>AI cost vs value created</h4><div class="chartbox"><canvas id="aiValChart"></canvas></div></div>
+    <div class="charts2">
+      <div class="card"><h4>Cumulative net value (ROI)</h4><div class="chartbox sm"><canvas id="aiCumChart"></canvas></div></div>
+      <div class="card"><h4>AI cost as % of revenue</h4><div class="chartbox sm"><canvas id="aiPctChart"></canvas></div></div>
+    </div>
+  </div>
+</div></section>
+
+</div></main>
+<footer>Built for Mark Kempa · synthetic data · figures illustrative</footer>
+<script>
+//APP-START
+const DATA={"company": "Cleardose Health, Inc.", "periods": ["2025-01", "2025-02", "2025-03", "2025-04", "2025-05", "2025-06", "2025-07", "2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06"], "months": [{"period": "2025-01", "revenue": 640590, "subscription": 251328, "services": 16736, "telehealth": 124683, "ccm": 62585, "vbc": 198367, "adjustments": -13109, "cogs": 300469, "grossProfit": 340121, "opex": 999591, "sm": 355163, "otherIncome": 34274, "netIncome": -625195, "beginCash": 18300000, "endCash": 17770350, "netChange": -529650, "mrr": 251328, "arr": 3015931, "customers": 73, "newCustomers": 4, "churn": 0.019, "headcount": 51, "marketing": 112957, "arpu": 3443, "patientAR": 97080, "vbcMembers": 3411}, {"period": "2025-02", "revenue": 631359, "subscription": 256409, "services": 13422, "telehealth": 120077, "ccm": 62475, "vbc": 191754, "adjustments": -12779, "cogs": 290236, "grossProfit": 341122, "opex": 1067014, "sm": 388432, "otherIncome": 36953, "netIncome": -688939, "beginCash": 17770350, "endCash": 16898540, "netChange": -871810, "mrr": 256409, "arr": 3076913, "customers": 77, "newCustomers": 5, "churn": 0.0155, "headcount": 55, "marketing": 118877, "arpu": 3330, "patientAR": 125345, "vbcMembers": 3162}, {"period": "2025-03", "revenue": 682261, "subscription": 263298, "services": 10154, "telehealth": 134112, "ccm": 69702, "vbc": 219263, "adjustments": -14267, "cogs": 322652, "grossProfit": 359608, "opex": 1130255, "sm": 430828, "otherIncome": 35989, "netIncome": -734658, "beginCash": 16898540, "endCash": 16119367, "netChange": -779173, "mrr": 263298, "arr": 3159572, "customers": 79, "newCustomers": 4, "churn": 0.0201, "headcount": 57, "marketing": 124712, "arpu": 3333, "patientAR": 151767, "vbcMembers": 3639}, {"period": "2025-04", "revenue": 687751, "subscription": 267090, "services": 4275, "telehealth": 143946, "ccm": 72336, "vbc": 215243, "adjustments": -15140, "cogs": 326516, "grossProfit": 361235, "opex": 1145557, "sm": 434565, "otherIncome": 30211, "netIncome": -754111, "beginCash": 16119367, "endCash": 15221134, "netChange": -898233, "mrr": 267090, "arr": 3205085, "customers": 81, "newCustomers": 3, "churn": 0.0159, "headcount": 61, "marketing": 109669, "arpu": 3297, "patientAR": 164130, "vbcMembers": 3589}, {"period": "2025-05", "revenue": 764893, "subscription": 285999, "services": 25589, "telehealth": 154950, "ccm": 77854, "vbc": 236797, "adjustments": -16296, "cogs": 354381, "grossProfit": 410512, "opex": 1189884, "sm": 472623, "otherIncome": 35174, "netIncome": -744198, "beginCash": 15221134, "endCash": 14342959, "netChange": -878175, "mrr": 285999, "arr": 3431984, "customers": 87, "newCustomers": 8, "churn": 0.0185, "headcount": 64, "marketing": 115584, "arpu": 3287, "patientAR": 182559, "vbcMembers": 3825}, {"period": "2025-06", "revenue": 772446, "subscription": 297242, "services": 21838, "telehealth": 153551, "ccm": 76486, "vbc": 239432, "adjustments": -16103, "cogs": 358473, "grossProfit": 413973, "opex": 1256176, "sm": 488709, "otherIncome": 37977, "netIncome": -804227, "beginCash": 14342959, "endCash": 13470933, "netChange": -872026, "mrr": 297242, "arr": 3566899, "customers": 94, "newCustomers": 8, "churn": 0.0159, "headcount": 65, "marketing": 139391, "arpu": 3162, "patientAR": 189624, "vbcMembers": 4203}, {"period": "2025-07", "revenue": 803126, "subscription": 303584, "services": 18271, "telehealth": 160167, "ccm": 82384, "vbc": 255699, "adjustments": -16979, "cogs": 376955, "grossProfit": 426171, "opex": 1258901, "sm": 499132, "otherIncome": 33172, "netIncome": -799558, "beginCash": 13470933, "endCash": 12528665, "netChange": -942267, "mrr": 303584, "arr": 3643006, "customers": 99, "newCustomers": 7, "churn": 0.0171, "headcount": 68, "marketing": 125782, "arpu": 3067, "patientAR": 203209, "vbcMembers": 4286}, {"period": "2025-08", "revenue": 895649, "subscription": 331926, "services": 31541, "telehealth": 170098, "ccm": 90598, "vbc": 289735, "adjustments": -18249, "cogs": 416755, "grossProfit": 478895, "opex": 1245998, "sm": 489242, "otherIncome": 37491, "netIncome": -729613, "beginCash": 12528665, "endCash": 11625484, "netChange": -903182, "mrr": 331926, "arr": 3983107, "customers": 105, "newCustomers": 7, "churn": 0.0129, "headcount": 70, "marketing": 96873, "arpu": 3161, "patientAR": 229005, "vbcMembers": 5209}, {"period": "2025-09", "revenue": 926891, "subscription": 339271, "services": 19622, "telehealth": 190816, "ccm": 93345, "vbc": 303728, "adjustments": -19891, "cogs": 443097, "grossProfit": 483794, "opex": 1345195, "sm": 547306, "otherIncome": 31126, "netIncome": -830275, "beginCash": 11625484, "endCash": 10677110, "netChange": -948374, "mrr": 339271, "arr": 4071250, "customers": 109, "newCustomers": 6, "churn": 0.0189, "headcount": 71, "marketing": 132823, "arpu": 3113, "patientAR": 254519, "vbcMembers": 5034}, {"period": "2025-10", "revenue": 953762, "subscription": 356359, "services": 21059, "telehealth": 190842, "ccm": 100848, "vbc": 305072, "adjustments": -20418, "cogs": 447772, "grossProfit": 505991, "opex": 1338153, "sm": 544708, "otherIncome": 34229, "netIncome": -797934, "beginCash": 10677110, "endCash": 9733085, "netChange": -944025, "mrr": 356359, "arr": 4276311, "customers": 114, "newCustomers": 7, "churn": 0.0186, "headcount": 74, "marketing": 121310, "arpu": 3126, "patientAR": 268895, "vbcMembers": 5041}, {"period": "2025-11", "revenue": 984952, "subscription": 368868, "services": 13205, "telehealth": 194722, "ccm": 99033, "vbc": 329687, "adjustments": -20563, "cogs": 466660, "grossProfit": 518292, "opex": 1332877, "sm": 538062, "otherIncome": 40939, "netIncome": -773646, "beginCash": 9733085, "endCash": 8874285, "netChange": -858799, "mrr": 368868, "arr": 4426416, "customers": 117, "newCustomers": 5, "churn": 0.0133, "headcount": 74, "marketing": 115848, "arpu": 3153, "patientAR": 286588, "vbcMembers": 5470}, {"period": "2025-12", "revenue": 1024894, "subscription": 372267, "services": 14820, "telehealth": 217079, "ccm": 109365, "vbc": 334214, "adjustments": -22851, "cogs": 487871, "grossProfit": 537023, "opex": 1368364, "sm": 542576, "otherIncome": 35331, "netIncome": -796009, "beginCash": 8874285, "endCash": 7880534, "netChange": -993751, "mrr": 372267, "arr": 4467205, "customers": 118, "newCustomers": 3, "churn": 0.0207, "headcount": 76, "marketing": 97431, "arpu": 3155, "patientAR": 309856, "vbcMembers": 5636}, {"period": "2026-01", "revenue": 1054340, "subscription": 381733, "services": 19461, "telehealth": 219144, "ccm": 112270, "vbc": 344931, "adjustments": -23199, "cogs": 501266, "grossProfit": 553075, "opex": 1399517, "sm": 609402, "otherIncome": 33382, "netIncome": -813061, "beginCash": 7880534, "endCash": 6955336, "netChange": -925198, "mrr": 381733, "arr": 4580801, "customers": 123, "newCustomers": 7, "churn": 0.0166, "headcount": 76, "marketing": 153800, "arpu": 3104, "patientAR": 327284, "vbcMembers": 5680}, {"period": "2026-02", "revenue": 1102291, "subscription": 388870, "services": 13049, "telehealth": 233871, "ccm": 119916, "vbc": 371350, "adjustments": -24765, "cogs": 534342, "grossProfit": 567949, "opex": 1429150, "sm": 624903, "otherIncome": 28347, "netIncome": -832854, "beginCash": 6955336, "endCash": 5993560, "netChange": -961776, "mrr": 388870, "arr": 4666445, "customers": 124, "newCustomers": 3, "churn": 0.0183, "headcount": 78, "marketing": 156361, "arpu": 3136, "patientAR": 357127, "vbcMembers": 6353}, {"period": "2026-03", "revenue": 1119253, "subscription": 394870, "services": 11493, "telehealth": 236873, "ccm": 121665, "vbc": 379449, "adjustments": -25098, "cogs": 545654, "grossProfit": 573599, "opex": 1442801, "sm": 606955, "otherIncome": 35065, "netIncome": -834138, "beginCash": 5993560, "endCash": 5101163, "netChange": -892397, "mrr": 394870, "arr": 4738441, "customers": 125, "newCustomers": 3, "churn": 0.0197, "headcount": 78, "marketing": 132583, "arpu": 3159, "patientAR": 377115, "vbcMembers": 6453}, {"period": "2026-04", "revenue": 1238113, "subscription": 425596, "services": 32677, "telehealth": 269085, "ccm": 126222, "vbc": 412205, "adjustments": -27671, "cogs": 596562, "grossProfit": 641551, "opex": 1441276, "sm": 615292, "otherIncome": 39380, "netIncome": -760345, "beginCash": 5101163, "endCash": 4205287, "netChange": -895876, "mrr": 425596, "arr": 5107154, "customers": 131, "newCustomers": 8, "churn": 0.0175, "headcount": 80, "marketing": 122803, "arpu": 3249, "patientAR": 419178, "vbcMembers": 7106}, {"period": "2026-05", "revenue": 1277143, "subscription": 429483, "services": 21440, "telehealth": 267020, "ccm": 134159, "vbc": 453125, "adjustments": -28082, "cogs": 636043, "grossProfit": 641100, "opex": 1480984, "sm": 632585, "otherIncome": 30354, "netIncome": -809529, "beginCash": 4205287, "endCash": 3296665, "netChange": -908622, "mrr": 429483, "arr": 5153791, "customers": 136, "newCustomers": 8, "churn": 0.0204, "headcount": 82, "marketing": 151028, "arpu": 3158, "patientAR": 463351, "vbcMembers": 7644}, {"period": "2026-06", "revenue": 1330950, "subscription": 439740, "services": 10703, "telehealth": 277439, "ccm": 148784, "vbc": 484119, "adjustments": -29836, "cogs": 677420, "grossProfit": 653530, "opex": 1526253, "sm": 652154, "otherIncome": 32709, "netIncome": -840014, "beginCash": 3296665, "endCash": 2409104, "netChange": -887560, "mrr": 439740, "arr": 5276877, "customers": 138, "newCustomers": 4, "churn": 0.015, "headcount": 83, "marketing": 149758, "arpu": 3187, "patientAR": 514091, "vbcMembers": 8555}], "states": {"MI": {"name": "Michigan", "rev": 1705908, "cost": 865240, "margin": 840668, "marginPct": 0.4928, "revByPeriod": [56479, 54682, 61718, 63795, 72561, 69638, 79339, 83408, 94841, 94096, 108794, 112878, 113620, 119426, 119423, 128048, 131244, 141918], "marginByPeriod": [24527, 24500, 26427, 29724, 32955, 32554, 38533, 40803, 46621, 47036, 57621, 60190, 61420, 62412, 63657, 66002, 60606, 65080], "bySL": {"SaaS Platform": 442911, "Telehealth": 401653, "Chronic Care Management": 209248, "Value-Based Care": 652096}, "byPayor": {"UnitedHealthcare": 523125, "Humana": 431082, "Cigna": 148830, "Clover": 139288, "Self-Pay": 20673}}, "OH": {"name": "Ohio", "rev": 1892787, "cost": 788526, "margin": 1104261, "marginPct": 0.5834, "revByPeriod": [57855, 64289, 81125, 74538, 79049, 82478, 88206, 98373, 104628, 112002, 114301, 117424, 117518, 137411, 129628, 141049, 137981, 154932], "marginByPeriod": [29819, 37123, 50484, 41010, 45488, 47433, 48842, 57459, 62246, 67371, 68341, 69401, 70283, 86116, 74205, 79940, 79196, 89504], "bySL": {"SaaS Platform": 742336, "Telehealth": 372224, "Chronic Care Management": 188212, "Value-Based Care": 590015}, "byPayor": {"UnitedHealthcare": 469544, "Humana": 390673, "Cigna": 139760, "Clover": 131319, "Self-Pay": 19156}}, "WI": {"name": "Wisconsin", "rev": 983871, "cost": 467783, "margin": 516088, "marginPct": 0.5245, "revByPeriod": [47383, 40352, 41797, 43304, 45545, 43887, 46013, 81100, 50212, 52102, 54960, 63091, 52031, 54887, 55252, 61225, 83011, 67719], "marginByPeriod": [30653, 24114, 24249, 25237, 24472, 24038, 25111, 56037, 25164, 26618, 27706, 35787, 22283, 23542, 23547, 24798, 46213, 26519], "bySL": {"SaaS Platform": 300630, "Telehealth": 217715, "Chronic Care Management": 110559, "Value-Based Care": 354967}, "byPayor": {"UnitedHealthcare": 282845, "Humana": 229199, "Cigna": 81175, "Clover": 79140, "Self-Pay": 10881}}, "IN": {"name": "Indiana", "rev": 1511199, "cost": 534594, "margin": 976605, "marginPct": 0.6462, "revByPeriod": [57695, 58851, 62169, 61082, 92408, 68683, 73771, 77807, 76695, 78159, 79870, 87100, 89719, 93633, 94693, 131862, 107280, 119722], "marginByPeriod": [37964, 39885, 40235, 40387, 70303, 45046, 48663, 52052, 48413, 48752, 51011, 54892, 55259, 57490, 57773, 91910, 63340, 73230], "bySL": {"SaaS Platform": 731961, "Telehealth": 250851, "Chronic Care Management": 128439, "Value-Based Care": 399950}, "byPayor": {"UnitedHealthcare": 322347, "Humana": 265380, "Cigna": 92699, "Clover": 86902, "Self-Pay": 11911}}, "IL": {"name": "Illinois", "rev": 2523106, "cost": 936121, "margin": 1586985, "marginPct": 0.629, "revByPeriod": [97870, 113372, 105394, 107471, 113783, 125956, 140198, 135388, 135045, 138909, 140941, 149879, 149340, 165448, 166978, 176242, 177755, 183137], "marginByPeriod": [67148, 80072, 69166, 69810, 75324, 83877, 97850, 87928, 84884, 86018, 86889, 90806, 91057, 100916, 101193, 106169, 102273, 105605], "bySL": {"SaaS Platform": 1156682, "Telehealth": 434926, "Chronic Care Management": 219949, "Value-Based Care": 711550}, "byPayor": {"UnitedHealthcare": 551465, "Humana": 472808, "Cigna": 162429, "Clover": 157431, "Self-Pay": 22291}}, "MN": {"name": "Minnesota", "rev": 1495056, "cost": 534995, "margin": 960061, "marginPct": 0.6422, "revByPeriod": [56514, 56019, 66031, 66186, 69047, 69005, 70412, 77366, 79235, 80487, 82833, 92286, 95057, 101275, 116253, 100610, 103782, 112658], "marginByPeriod": [38026, 37586, 43951, 45083, 45971, 45351, 45734, 50266, 50743, 51688, 51485, 58802, 62781, 64981, 78593, 63823, 60620, 64577], "bySL": {"SaaS Platform": 717169, "Telehealth": 249882, "Chronic Care Management": 125881, "Value-Based Care": 402126}, "byPayor": {"UnitedHealthcare": 320188, "Humana": 263703, "Cigna": 93206, "Clover": 88635, "Self-Pay": 12157}}, "PA": {"name": "Pennsylvania", "rev": 1688093, "cost": 801687, "margin": 886406, "marginPct": 0.5251, "revByPeriod": [78738, 59775, 66215, 68012, 73309, 77467, 82113, 90371, 93072, 95351, 94609, 101494, 102310, 107151, 104852, 127006, 131746, 134502], "marginByPeriod": [50962, 34251, 35016, 36496, 37070, 41718, 44702, 45640, 50354, 49603, 49862, 52405, 52220, 51707, 51929, 65772, 68568, 68131], "bySL": {"SaaS Platform": 518417, "Telehealth": 375575, "Chronic Care Management": 190708, "Value-Based Care": 603393}, "byPayor": {"UnitedHealthcare": 483053, "Humana": 395018, "Cigna": 139111, "Clover": 133422, "Self-Pay": 19070}}, "FL": {"name": "Florida", "rev": 2102181, "cost": 859406, "margin": 1242775, "marginPct": 0.5912, "revByPeriod": [86820, 86741, 89116, 90829, 97270, 87660, 91606, 99394, 104630, 116230, 114433, 120784, 129427, 136181, 134395, 155005, 179657, 182003], "marginByPeriod": [55734, 55697, 57258, 57637, 60676, 48469, 54542, 55493, 57828, 68541, 66442, 69960, 75473, 78368, 77223, 90707, 106594, 106133], "bySL": {"SaaS Platform": 852197, "Telehealth": 400840, "Chronic Care Management": 207249, "Value-Based Care": 641895}, "byPayor": {"UnitedHealthcare": 506379, "Humana": 430834, "Cigna": 147458, "Clover": 143789, "Self-Pay": 21524}}, "TX": {"name": "Texas", "rev": 2277977, "cost": 1000404, "margin": 1277573, "marginPct": 0.5608, "revByPeriod": [74114, 69506, 78786, 82533, 91330, 95943, 101652, 121163, 134733, 154616, 152995, 141099, 168539, 148694, 152483, 161513, 171491, 176787], "marginByPeriod": [36079, 34968, 40177, 43812, 47798, 55320, 56381, 70069, 76881, 100167, 93080, 81613, 104926, 84500, 84196, 86964, 89516, 91126], "bySL": {"SaaS Platform": 823739, "Telehealth": 471844, "Chronic Care Management": 236826, "Value-Based Care": 745566}, "byPayor": {"UnitedHealthcare": 591692, "Humana": 502762, "Cigna": 169174, "Clover": 166372, "Self-Pay": 24235}}, "AZ": {"name": "Arizona", "rev": 1075782, "cost": 609835, "margin": 465947, "marginPct": 0.4331, "revByPeriod": [40231, 40549, 44178, 45140, 46888, 67831, 46795, 49529, 73691, 52227, 61779, 61711, 59977, 62951, 70394, 83225, 81280, 87406], "marginByPeriod": [16936, 19013, 20145, 19674, 21235, 42090, 18296, 18481, 38861, 20241, 25435, 25175, 21381, 23575, 27046, 35868, 35322, 37173], "bySL": {"SaaS Platform": 187247, "Telehealth": 282966, "Chronic Care Management": 142954, "Value-Based Care": 462615}, "byPayor": {"UnitedHealthcare": 362760, "Humana": 307788, "Cigna": 103174, "Clover": 100175, "Self-Pay": 14638}}}, "serviceLines": {"SaaS Platform": {"rev": 6473287, "cost": 684530, "margin": 5788757, "marginPct": 0.8943, "revByPeriod": [268064, 269831, 273452, 271366, 311588, 319079, 321854, 363467, 358893, 377418, 382073, 387088, 401194, 401919, 406363, 458273, 450922, 450443], "marginByPeriod": [233446, 236521, 240220, 238871, 277105, 283256, 286350, 326384, 320585, 337789, 343057, 347934, 360382, 361027, 365698, 415544, 407859, 406729], "marginPctByPeriod": [0.8709, 0.8766, 0.8785, 0.8803, 0.8893, 0.8877, 0.8897, 0.898, 0.8933, 0.895, 0.8979, 0.8988, 0.8983, 0.8983, 0.8999, 0.9068, 0.9045, 0.903]}, "Telehealth": {"rev": 3458475, "cost": 1894624, "margin": 1563851, "marginPct": 0.4522, "revByPeriod": [124683, 120077, 134112, 143946, 154950, 153551, 160167, 170098, 190816, 190842, 194722, 217079, 219144, 233871, 236873, 269085, 267020, 277439], "marginByPeriod": [55651, 53797, 61207, 65282, 69896, 69087, 72222, 77176, 86734, 85505, 89932, 99479, 99143, 108951, 107343, 120691, 118787, 122968], "marginPctByPeriod": [0.4463, 0.448, 0.4564, 0.4535, 0.4511, 0.4499, 0.4509, 0.4537, 0.4545, 0.448, 0.4618, 0.4583, 0.4524, 0.4659, 0.4532, 0.4485, 0.4449, 0.4432]}, "Chronic Care Management": {"rev": 1760027, "cost": 775613, "margin": 984414, "marginPct": 0.5593, "revByPeriod": [62585, 62475, 69702, 72336, 77854, 76486, 82384, 90598, 93345, 100848, 99033, 109365, 112270, 119916, 121665, 126222, 134159, 148784], "marginByPeriod": [34639, 34678, 39221, 39483, 42767, 42704, 46528, 49793, 52352, 56339, 56071, 60892, 63665, 67943, 68284, 71013, 75905, 82137], "marginPctByPeriod": [0.5535, 0.5551, 0.5627, 0.5458, 0.5493, 0.5583, 0.5648, 0.5496, 0.5608, 0.5587, 0.5662, 0.5568, 0.5671, 0.5666, 0.5612, 0.5626, 0.5658, 0.5521]}, "Value-Based Care": {"rev": 5564170, "cost": 4728361, "margin": 835809, "marginPct": 0.1502, "revByPeriod": [198367, 191754, 219263, 215243, 236797, 239432, 255699, 289735, 303728, 305072, 329687, 334214, 344931, 371350, 379449, 412205, 453125, 484119], "marginByPeriod": [29494, 28904, 33229, 32739, 37040, 35027, 38048, 43790, 44014, 46775, 49795, 51571, 53083, 54793, 57371, 61975, 66631, 71530], "marginPctByPeriod": [0.1487, 0.1507, 0.1515, 0.1521, 0.1564, 0.1463, 0.1488, 0.1511, 0.1449, 0.1533, 0.151, 0.1543, 0.1539, 0.1476, 0.1512, 0.1503, 0.147, 0.1478]}}, "payorTotals": {"UnitedHealthcare": 4413397, "Humana": 3689248, "Cigna": 1277016, "Clover": 1226476, "Self-Pay": 176535}, "productTotals": {"Commercial": 941346, "Medicare": 7175593, "Medicaid": 2489196, "Uninsured": 176535}, "stateList": ["MI", "OH", "WI", "IN", "IL", "MN", "PA", "FL", "TX", "AZ"], "slList": ["SaaS Platform", "Telehealth", "Chronic Care Management", "Value-Based Care"], "latestCash": 2409104};
+const M=DATA.months,LAST=M[M.length-1],P=DATA.periods,ST=DATA.states,SL=DATA.serviceLines,SLIST=DATA.slList,STLIST=DATA.stateList;
+const $=id=>document.getElementById(id);
+const fUSD=x=>(x<0?'-$':'$')+Math.abs(Math.round(x)).toLocaleString();
+const fK=x=>{const a=Math.abs(x),s=x<0?'-':'';if(a>=1e6)return s+'$'+(a/1e6).toFixed(a>=1e7?0:1)+'M';if(a>=1e3)return s+'$'+(a/1e3).toFixed(0)+'k';return s+'$'+Math.round(a);};
+const fPct=x=>(x*100).toFixed(1)+'%';const fX=x=>x.toFixed(1)+'x';
+const mlabel=p=>{const[y,m]=p.split('-');return['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+m-1]+" '"+y.slice(2);};
+const ACC='#1f4e79',ACC2='#2e75b6',GREEN='#15803d',AMBER='#b45309',RED='#b91c1c';
+const SLCOL={'SaaS Platform':'#1f4e79','Telehealth':'#2e75b6','Chronic Care Management':'#7eb0d5','Value-Based Care':'#f59e0b'};
+let charts={};
+function mkChart(id,cfg){if(charts[id])charts[id].destroy();charts[id]=new Chart($(id),cfg);}
+const fcBandPlugin={id:'fcBand',beforeDraw(ch){const F=window.__FC;if(!F||!FCIDS.has(ch.canvas.id))return;const ar=ch.chartArea,x=ch.scales.x;if(!ar||!x)return;const xs=x.getPixelForValue(F.start-0.5);if(xs>=ar.right||xs<ar.left)return;const ctx=ch.ctx;ctx.save();ctx.fillStyle='rgba(148,163,184,.13)';ctx.fillRect(xs,ar.top,ar.right-xs,ar.bottom-ar.top);ctx.strokeStyle='rgba(100,116,139,.55)';ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(xs,ar.top);ctx.lineTo(xs,ar.bottom);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='#475569';ctx.font='600 10px Arial';ctx.fillText('Forecast \u2192',xs+5,ar.top+12);ctx.restore();}};
+Chart.register(fcBandPlugin);
+const baseOpts=(money=true)=>({responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+ plugins:{legend:{labels:{boxWidth:12,font:{size:10}}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+(money?fK(c.parsed.y):c.parsed.y.toFixed(1))}}},
+ scales:{y:{ticks:{callback:v=>money?fK(v):v,font:{size:10}}},x:{ticks:{font:{size:9},maxRotation:0,autoSkip:true}}}});
+function futureLabels(n){let[y,m]=LAST.period.split('-').map(Number);const o=[];for(let i=0;i<n;i++){m++;if(m>12){m=1;y++;}o.push(mlabel(y+'-'+String(m).padStart(2,'0')));}return o;}
+function avgRevGrowth(){let g=0,c=0;for(let i=1;i<M.length;i++){if(M[i-1].revenue>0){g+=M[i].revenue/M[i-1].revenue-1;c++;}}return c?g/c:0.04;}
+/* ===== FORECAST through 2027 ===== */
+const FC_N=18;
+function futureP(n){let a=P[P.length-1].split('-').map(Number),y=a[0],m=a[1];const o=[];for(let i=0;i<n;i++){m++;if(m>12){m=1;y++;}o.push(y+'-'+String(m).padStart(2,'0'));}return o;}
+const FCP=futureP(FC_N),Px=P.concat(FCP),FC_START=P.length;
+window.__FC={start:FC_START};
+const FCIDS=new Set(['mixChart','svcRevChart','svcMarginChart','svcCMChart','ltvcacChart','cacltvChart','gmChart','arrfteChart']);
+const _G=(function(){let g=0,c=0;for(let i=1;i<M.length;i++){if(M[i-1].revenue>0){g+=M[i].revenue/M[i-1].revenue-1;c++;}}return c?g/c:0.04;})();
+const SLx={};SLIST.forEach(sl=>{const a=DATA.serviceLines[sl].revByPeriod;let g=0,c=0;for(let i=Math.max(1,a.length-6);i<a.length;i++){if(a[i-1]>0){g+=a[i]/a[i-1]-1;c++;}}const gg=c?g/c:_G;const rev=a.slice(),mp=DATA.serviceLines[sl].marginPctByPeriod.slice(),lr=a[a.length-1],lm=mp[mp.length-1];for(let i=1;i<=FC_N;i++){rev.push(Math.round(lr*Math.pow(1+gg,i)));mp.push(lm);}SLx[sl]={rev,marginPct:mp,margin:rev.map((v,i)=>Math.round(v*mp[i]))};});
+const _saasG=(function(){let g=0,c=0;for(let i=Math.max(1,M.length-6);i<M.length;i++){if(M[i-1].mrr>0){g+=M[i].mrr/M[i-1].mrr-1;c++;}}return c?g/c:0.03;})();
+const _hire=Math.max(0,Math.round((LAST.headcount-M[0].headcount)/(M.length-1)));
+const Mx=M.slice();
+for(let i=1;i<=FC_N;i++){const f=Math.pow(1+_G,i);const sub=Math.round(LAST.subscription*f),th=Math.round(LAST.telehealth*f),ccm=Math.round(LAST.ccm*f),vbc=Math.round(LAST.vbc*f),svc=Math.round(LAST.services*f);const revenue=sub+th+ccm+vbc+svc;const gm=LAST.grossProfit/LAST.revenue;const gp=Math.round(revenue*gm);const opex=Math.round(LAST.opex*Math.pow(1.02,i));const mrr=Math.round(LAST.mrr*Math.pow(1+_saasG,i));const cust=Math.round(LAST.customers*Math.pow(1+_saasG*0.6,i));Mx.push(Object.assign({},LAST,{period:FCP[i-1],revenue,subscription:sub,telehealth:th,ccm,vbc,services:svc,grossProfit:gp,opex,netIncome:gp-opex+LAST.otherIncome,mrr,arr:mrr*12,customers:cust,arpu:Math.round(mrr/cust),headcount:LAST.headcount+_hire*i,marketing:Math.round(LAST.marketing*f),sm:Math.round(LAST.sm*f),isF:true}));}
+
+/* ===== US TILE MAP ===== */
+const GRID={AK:[0,0],ME:[0,10],VT:[1,9],NH:[1,10],
+WA:[2,0],ID:[2,1],MT:[2,2],ND:[2,3],MN:[2,4],WI:[2,5],MI:[2,7],NY:[2,8],MA:[2,9],
+OR:[3,0],NV:[3,1],WY:[3,2],SD:[3,3],IA:[3,4],IL:[3,5],IN:[3,6],OH:[3,7],PA:[3,8],NJ:[3,9],CT:[3,10],
+CA:[4,0],UT:[4,1],CO:[4,2],NE:[4,3],MO:[4,4],KY:[4,5],WV:[4,6],VA:[4,7],MD:[4,8],DE:[4,9],RI:[4,10],
+AZ:[5,1],NM:[5,2],KS:[5,3],AR:[5,4],TN:[5,5],NC:[5,6],SC:[5,7],
+OK:[6,3],LA:[6,4],MS:[6,5],AL:[6,6],GA:[6,7],
+HI:[7,0],TX:[7,3],FL:[7,8]};
+let metric='rev',selState=STLIST[0];
+function hexRgb(h){return[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];}
+function rgbHex(r){return '#'+r.map(x=>Math.round(x).toString(16).padStart(2,'0')).join('');}
+function lerp(a,b,t){const A=hexRgb(a),B=hexRgb(b);return rgbHex([0,1,2].map(i=>A[i]+(B[i]-A[i])*t));}
+function pctColor(t){return t<.5?lerp('#dc2626','#f59e0b',t/.5):lerp('#f59e0b','#16a34a',(t-.5)/.5);}
+function stateVal(s){const idx=$('periodSel').value;
+  let rev,mg;if(idx==='ALL'){rev=ST[s].rev;mg=ST[s].margin;}else{const i=+idx;rev=ST[s].revByPeriod[i];mg=ST[s].marginByPeriod[i];}
+  return{rev,mg,pct:rev?mg/rev:0};}
+function renderMap(){
+  const cell=44,pad=4,cols=11,rows=8;const W=cols*cell,H=rows*cell;
+  const vals=STLIST.map(s=>stateVal(s));
+  const maxRev=Math.max(...vals.map(v=>v.rev)),maxMg=Math.max(...vals.map(v=>v.mg));
+  let svg=`<svg id="usmap" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+  for(const code in GRID){const[r,c]=GRID[code];const x=c*cell,y=r*cell;
+    const isData=STLIST.includes(code);let fill='#e6ebf2',tcol='#9aa6b6';
+    if(isData){const v=stateVal(code);let t;
+      if(metric==='rev')t=maxRev?v.rev/maxRev:0,fill=lerp('#dbeafe','#1f4e79',t);
+      else if(metric==='margin')t=maxMg?v.mg/maxMg:0,fill=lerp('#dcfce7','#14532d',t);
+      else t=Math.max(0,Math.min(1,v.pct/0.9)),fill=pctColor(t);
+      tcol=(metric!=='pct'&&t>0.45)||(metric==='pct'&&t>0.35&&t<0.75)?'#fff':'#fff';tcol=t>0.5?'#fff':'#1f2937';}
+    const sel=isData&&code===selState?' stroke="#0e1726" stroke-width="2.5"':' stroke="#fff" stroke-width="1.5"';
+    svg+=`<g class="${isData?'st':''}" ${isData?`data-s="${code}" onmousemove="tip(event,'${code}')" onmouseleave="hideTip()" onclick="pick('${code}')"`:''}>`+
+      `<rect x="${x+pad}" y="${y+pad}" width="${cell-pad*2}" height="${cell-pad*2}" rx="6" fill="${fill}"${sel}/>`+
+      `<text x="${x+cell/2}" y="${y+cell/2+4}" text-anchor="middle" fill="${tcol}">${code}</text></g>`;
+  }
+  svg+=`</svg>`;
+  $('mapWrap').innerHTML=svg+'<div id="tip"></div>';
+  $('mapTitle').textContent=metric==='rev'?'Revenue by state':metric==='margin'?'Contribution margin $ by state':'Contribution margin % by state';
+  // legend
+  if(metric==='pct'){$('legBar').style.background='linear-gradient(90deg,#dc2626,#f59e0b,#16a34a)';$('legLo').textContent='0%';$('legHi').textContent='90%+';}
+  else if(metric==='rev'){$('legBar').style.background='linear-gradient(90deg,#dbeafe,#1f4e79)';$('legLo').textContent='$0';$('legHi').textContent=fK(maxRev);}
+  else{$('legBar').style.background='linear-gradient(90deg,#dcfce7,#14532d)';$('legLo').textContent='$0';$('legHi').textContent=fK(maxMg);}
+  renderSide();
+}
+function tip(e,s){const v=stateVal(s),t=$('tip');const rect=$('mapWrap').getBoundingClientRect();
+  t.innerHTML=`<b>${ST[s].name}</b>Revenue: ${fK(v.rev)}<br>Margin: ${fK(v.mg)} (${fPct(v.pct)})`;
+  t.style.left=(e.clientX-rect.left+12)+'px';t.style.top=(e.clientY-rect.top+12)+'px';t.style.opacity=1;}
+function hideTip(){const t=$('tip');if(t)t.style.opacity=0;}
+function pick(s){selState=s;renderMap();}
+function setMetric(m){metric=m;document.querySelectorAll('#metricSeg button').forEach(b=>b.classList.toggle('on',b.dataset.m===m));renderMap();}
+function renderSide(){const s=selState,d=ST[s],v=stateVal(s);
+  const slmax=Math.max(...SLIST.map(x=>d.bySL[x]||0))||1;
+  let sl=SLIST.map(x=>{const val=d.bySL[x]||0;return `<div class="bar"><i style="width:${Math.max(2,val/slmax*100)}%;background:${SLCOL[x]}"></i><span>${x.replace('Chronic Care Management','CCM').replace('Value-Based Care','VBC').replace('SaaS Platform','SaaS')}</span><span class="r">${fK(val)}</span></div>`;}).join('');
+  const py=Object.entries(d.byPayor).sort((a,b)=>b[1]-a[1]);const pymax=Math.max(...py.map(x=>x[1]))||1;
+  let pyh=py.map(([k,val])=>`<div class="bar"><i style="width:${Math.max(2,val/pymax*100)}%"></i><span>${k}</span><span class="r">${fK(val)}</span></div>`).join('');
+  $('sidePanel').innerHTML=`<h4>${d.name}</h4><div class="sub">full-period totals</div>`+
+    `<div class="kpis" style="grid-template-columns:1fr 1fr;margin-bottom:8px">`+
+    `<div class="kpi"><div class="lab">Revenue</div><div class="num" style="font-size:1.15rem">${fK(d.rev)}</div></div>`+
+    `<div class="kpi"><div class="lab">Margin</div><div class="num" style="font-size:1.15rem">${fPct(d.marginPct)}</div><div class="note">${fK(d.margin)}</div></div></div>`+
+    `<div class="mini">Revenue by service line</div>${sl}<div class="mini">Revenue by payor</div>${pyh}`;
+}
+function renderKpis(){const idx=$('periodSel').value;let rev,gm,burn,scope;
+  if(idx==='ALL'){rev=M.reduce((a,m)=>a+m.revenue,0);gm=M.reduce((a,m)=>a+m.grossProfit,0)/rev;const l3=M.slice(-3);burn=-(l3.reduce((a,m)=>a+m.netIncome,0)/l3.length);scope='full period';}
+  else{const m=M[+idx];rev=m.revenue;gm=m.grossProfit/m.revenue;burn=-m.netIncome;scope=mlabel(m.period);}
+  const runway=burn>0?LAST.endCash/burn:Infinity;
+  const topS=STLIST.map(s=>[s,ST[s].rev]).sort((a,b)=>b[1]-a[1])[0];
+  $('scopeNote').textContent='Showing: '+scope;
+  const k=[];
+  k.push(kc('Revenue',fK(rev),scope));
+  k.push(kc('Gross margin',fPct(gm),'blended'));
+  k.push(kc('Net burn',fK(burn),'/mo',burn>0?'warn':'ok'));
+  k.push(kc('Cash runway',isFinite(runway)?runway.toFixed(0)+' mo':'—','at current burn',runway<6?'bad':runway<9?'warn':'ok'));
+  k.push(kc('SaaS MRR',fK(LAST.mrr),'ARR '+fK(LAST.arr)));
+  k.push(kc('VBC members',LAST.vbcMembers.toLocaleString(),'PMPM lives'));
+  k.push(kc('Top state',topS[0],fK(topS[1])));
+  k.push(kc('States live',STLIST.length,'markets'));
+  $('dashKpis').innerHTML=k.join('');
+}
+function kc(l,n,note,f){return `<div class="kpi ${f||''}"><div class="lab">${l}</div><div class="num">${n}</div><div class="note">${note||''}</div></div>`;}
+function initMap(){const sel=$('periodSel');sel.innerHTML='<option value="ALL">All periods (cumulative)</option>'+P.map((p,i)=>`<option value="${i}">${mlabel(p)}</option>`).join('');
+  renderMap();renderKpis();
+  mkChart('mixChart',{type:'line',data:{labels:Px.map(mlabel),datasets:SLIST.map(sl=>({label:sl.replace('Chronic Care Management','CCM').replace('Value-Based Care','VBC'),data:SLx[sl].rev,borderColor:SLCOL[sl],backgroundColor:SLCOL[sl]+'55',fill:true,tension:.25,pointRadius:0,borderWidth:2}))},options:Object.assign(baseOpts(),{scales:{y:{stacked:true,ticks:{callback:v=>fK(v),font:{size:10}}},x:{ticks:{font:{size:9},maxRotation:0,autoSkip:true}}}})});
+}
+
+/* ===== SERVICE LINES ===== */
+function renderSvc(){
+  const k=SLIST.map(sl=>kc(sl.replace('Chronic Care Management','CCM').replace('Value-Based Care','VBC'),fK(SL[sl].rev),'margin '+fPct(SL[sl].marginPct),SL[sl].marginPct>0.6?'ok':SL[sl].marginPct>0.3?'warn':'bad'));
+  $('svcKpis').innerHTML=k.join('');
+  mkChart('svcRevChart',{type:'line',data:{labels:Px.map(mlabel),datasets:SLIST.map(sl=>({label:sl.replace('Chronic Care Management','CCM').replace('Value-Based Care','VBC'),data:SLx[sl].rev,borderColor:SLCOL[sl],backgroundColor:SLCOL[sl]+'55',fill:true,tension:.25,pointRadius:0,borderWidth:2}))},options:Object.assign(baseOpts(),{scales:{y:{stacked:true,ticks:{callback:v=>fK(v),font:{size:10}}},x:{ticks:{font:{size:9},maxRotation:0,autoSkip:true}}}})});
+  mkChart('svcMarginChart',{type:'line',data:{labels:Px.map(mlabel),datasets:SLIST.map(sl=>({label:sl.replace('Chronic Care Management','CCM').replace('Value-Based Care','VBC'),data:SLx[sl].marginPct.map(x=>x*100),borderColor:SLCOL[sl],borderWidth:2,tension:.25,pointRadius:0}))},options:Object.assign(baseOpts(false),{scales:{y:{ticks:{callback:v=>v+'%',font:{size:10}}},x:{ticks:{font:{size:9},maxRotation:0,autoSkip:true}}}})});
+  const pe=DATA.payorTotals,pr=DATA.productTotals;
+  mkChart('payorChart',{type:'doughnut',data:{labels:Object.keys(pe),datasets:[{data:Object.values(pe),backgroundColor:['#1f4e79','#2e75b6','#7eb0d5','#f59e0b','#94a3b8']}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{boxWidth:12,font:{size:11}}},tooltip:{callbacks:{label:c=>c.label+': '+fK(c.parsed)}}}}});
+  mkChart('productChart',{type:'doughnut',data:{labels:Object.keys(pr),datasets:[{data:Object.values(pr),backgroundColor:['#2e75b6','#1f4e79','#7eb0d5','#cbd5e1']}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{boxWidth:12,font:{size:11}}},tooltip:{callbacks:{label:c=>c.label+': '+fK(c.parsed)}}}}});
+  mkChart('svcCMChart',{type:'bar',data:{labels:Px.map(mlabel),datasets:SLIST.map(sl=>({label:sl.replace('Chronic Care Management','CCM').replace('Value-Based Care','VBC'),data:SLx[sl].margin,backgroundColor:SLCOL[sl]}))},options:Object.assign(baseOpts(),{scales:{y:{stacked:true,ticks:{callback:v=>fK(v),font:{size:10}}},x:{stacked:true,ticks:{font:{size:9},maxRotation:0,autoSkip:true}}}})});
+}
+
+/* ===== CASH RUNWAY ===== */
+const cashDef={cash0:LAST.endCash,revG:+(avgRevGrowth()*100).toFixed(1),opexG:2,gm:Math.round(LAST.grossProfit/LAST.revenue*100),stress:1,raise:0,rmonth:6,horizon:24,nstates:0,entry:6,srev:120000,smarg:50,hire:4,hcost:150000};
+function setCashUI(){for(const k in cashDef)$(k).value=cashDef[k];}
+function resetCash(){setCashUI();updateCash();}
+function projectCash(wr){const c0=+$('cash0').value,rg=+$('revG').value/100,og=+$('opexG').value/100,gm=+$('gm').value/100,s=+$('stress').value,ra=(+$('raise').value)*1e6,rm=+$('rmonth').value,H=+$('horizon').value;
+  const ns=+$('nstates').value,em=+$('entry').value,sr=+$('srev').value,smg=+$('smarg').value/100,hh=+$('hire').value,hcm=(+$('hcost').value)/12;
+  const r0=LAST.revenue,o0=LAST.opex,ot=LAST.otherIncome;let cash=c0;const bal=[],flow=[],erev=[];
+  for(let i=1;i<=H;i++){const rev=r0*Math.pow(1+rg,i),gp=rev*gm;
+    const op=o0*s*Math.pow(1+og,i)+(hh*i)*hcm;
+    let exp=0;if(i>=em){const ramp=Math.min(1,(i-em+1)/6);exp=ns*sr*ramp;}
+    let cf=gp-op+ot+exp*smg;if(wr&&i===rm)cf+=ra;cash+=cf;bal.push(Math.round(cash));flow.push(Math.round(cf));erev.push(Math.round(exp));}
+  return{bal,flow,H,erev};}
+function updateCash(){$('v_cash0').textContent=fK(+$('cash0').value);$('v_revG').textContent=(+$('revG').value).toFixed(1)+'%';$('v_opexG').textContent=(+$('opexG').value).toFixed(1)+'%';$('v_gm').textContent=(+$('gm').value)+'%';$('v_stress').textContent=(+$('stress').value).toFixed(2)+'x';$('v_raise').textContent='$'+(+$('raise').value)+'M';$('v_rmonth').textContent=(+$('rmonth').value)+' mo';$('v_horizon').textContent=(+$('horizon').value)+' mo';$('v_nstates').textContent=(+$('nstates').value);$('v_entry').textContent='mo '+(+$('entry').value);$('v_srev').textContent=fK(+$('srev').value)+'/mo';$('v_smarg').textContent=(+$('smarg').value)+'%';$('v_hire').textContent=(+$('hire').value)+'/mo';$('v_hcost').textContent=fK(+$('hcost').value);
+  const sc=projectCash(true),nr=projectCash(false),H=sc.H,labels=futureLabels(H);
+  const hist=M.map(m=>m.endCash),hl=M.map(m=>mlabel(m.period)),pad=hist.map(()=>null);
+  const ro=b=>{for(let i=0;i<b.length;i++)if(b[i]<0)return i+1;return null;};
+  const roN=ro(nr.bal),roS=ro(sc.bal),burn=-sc.flow[0],minC=Math.min(...sc.bal);
+  const k=[];k.push(kc('Starting cash',fK(+$('cash0').value),''));k.push(kc('Month-1 burn',fK(burn),burn>0?'cash out/mo':'positive'));
+  k.push(kc('Runway (no raise)',roN?roN+' mo':'>'+H+' mo',roN?'cash-out '+labels[roN-1]:'healthy',roN?(roN<6?'bad':roN<9?'warn':'ok'):'ok'));
+  k.push(kc('Runway (scenario)',roS?roS+' mo':'>'+H+' mo',roS?'cash-out '+labels[roS-1]:'healthy',roS?(roS<6?'bad':roS<9?'warn':'ok'):'ok'));
+  k.push(kc('Min cash',fK(minC),minC<0?'goes negative':'stays positive',minC<0?'bad':'ok'));
+  k.push(kc('Headcount (end)',Math.round(LAST.headcount+(+$('hire').value)*(+$('horizon').value)),'+'+(+$('hire').value)+'/mo'));
+  k.push(kc('New states',(+$('nstates').value),(+$('nstates').value)?'enter mo '+(+$('entry').value):'none'));
+  k.push(kc('New-state run-rate',fK(sc.erev[sc.erev.length-1]),'rev/mo at horizon'));
+  $('cashKpis').innerHTML=k.join('');
+  const r=roS||roN,b=$('cashBanner');if(r&&r<6){b.className='banner bad';b.textContent='⚠ Funding needed — under 6 months of runway.';}else if(r&&r<9){b.className='banner warn';b.textContent='◐ Start the raise — 6–9 months left.';}else{b.className='banner ok';b.textContent='✓ Healthy runway ('+(r?r+' mo':'>'+H+' mo')+').';}
+  mkChart('cashChart',{type:'line',data:{labels:hl.concat(labels),datasets:[{label:'Actual cash',data:hist.concat(labels.map(()=>null)),borderColor:ACC,backgroundColor:'rgba(31,78,121,.08)',fill:true,tension:.25,pointRadius:0,borderWidth:2.5},{label:'Scenario (raise)',data:pad.concat(sc.bal),borderColor:GREEN,borderWidth:2.5,tension:.25,pointRadius:0},{label:'No raise',data:pad.concat(nr.bal),borderColor:RED,borderDash:[6,5],borderWidth:2,tension:.25,pointRadius:0}]},options:Object.assign(baseOpts(),{scales:{y:{ticks:{callback:v=>fK(v),font:{size:10}},grid:{color:c=>c.tick.value===0?'#ef4444':'rgba(0,0,0,.06)'}},x:{ticks:{font:{size:9},maxRotation:0,autoSkip:true}}}})});
+  mkChart('burnChart',{type:'bar',data:{labels:labels,datasets:[{label:'Net cash flow',data:sc.flow,backgroundColor:sc.flow.map(v=>v<0?'rgba(185,28,28,.75)':'rgba(21,128,61,.75)')}]},options:baseOpts()});
+}
+
+/* ===== UNIT ECON ===== */
+const unitDef={target:3,churnFloor:1.0};
+function setUnitUI(){$('target').value=unitDef.target;$('churnFloor').value=unitDef.churnFloor;$('includeSM').checked=true;}
+function resetUnit(){setUnitUI();updateUnit();}
+function unitSeries(){const inc=$('includeSM').checked,fl=+$('churnFloor').value/100,out=[];
+  for(let i=0;i<Mx.length;i++){const m=Mx[i],pv=i>0?Mx[i-1]:null;const gm=m.grossProfit/m.revenue;const ac=inc?m.sm:m.marketing;const cac=m.newCustomers>0?ac/m.newCustomers:null;const ch=Math.max(m.churn,fl);const ltv=(m.arpu*gm)/ch;const lc=cac?ltv/cac:null;const pb=cac?cac/(m.arpu*gm):null;const af=m.arr/m.headcount;
+    out.push({p:m.period,gm,cac,ltv,lc,pb,af,mrr:m.mrr,arr:m.arr,customers:m.customers,churn:m.churn});}return out;}
+function updateUnit(){$('v_target').textContent=(+$('target').value).toFixed(1)+'x';$('v_churnFloor').textContent=(+$('churnFloor').value).toFixed(1)+'%';
+  const s=unitSeries(),L=s[window.__FC.start-1],labels=s.map(x=>mlabel(x.p)),tg=+$('target').value;
+  const k=[];k.push(kc('SaaS MRR',fK(L.mrr),'ARR '+fK(L.arr)));k.push(kc('Customers',L.customers,'logos'));k.push(kc('Churn',fPct(L.churn),'monthly'));k.push(kc('Gross margin',fPct(L.gm),''));
+  k.push(kc('LTV:CAC',L.lc?fX(L.lc):'—','target '+tg+'x',L.lc?(L.lc>=tg?'ok':L.lc>=2?'warn':'bad'):''));k.push(kc('CAC',L.cac?fK(L.cac):'—',''));k.push(kc('CAC payback',L.pb?L.pb.toFixed(0)+' mo':'—','',L.pb?(L.pb<=12?'ok':L.pb<=24?'warn':'bad'):''));k.push(kc('ARR/FTE',fK(L.af),'efficiency'));
+  $('unitKpis').innerHTML=k.join('');
+  mkChart('ltvcacChart',{type:'line',data:{labels,datasets:[{label:'LTV:CAC',data:s.map(x=>x.lc),borderColor:ACC,borderWidth:2.5,tension:.25,pointRadius:0},{label:'Target',data:s.map(()=>tg),borderColor:GREEN,borderDash:[5,5],borderWidth:1.5,pointRadius:0}]},options:baseOpts(false)});
+  mkChart('cacltvChart',{type:'line',data:{labels,datasets:[{label:'CAC',data:s.map(x=>x.cac),borderColor:AMBER,borderWidth:2,tension:.25,pointRadius:0},{label:'LTV',data:s.map(x=>x.ltv),borderColor:ACC,borderWidth:2,tension:.25,pointRadius:0}]},options:baseOpts()});
+  mkChart('gmChart',{type:'line',data:{labels,datasets:[{label:'Gross margin',data:s.map(x=>x.gm*100),borderColor:GREEN,borderWidth:2.5,tension:.25,pointRadius:0,fill:true,backgroundColor:'rgba(21,128,61,.08)'}]},options:Object.assign(baseOpts(false),{scales:{y:{ticks:{callback:v=>v+'%',font:{size:10}}},x:{ticks:{font:{size:9},maxRotation:0,autoSkip:true}}}})});
+  mkChart('arrfteChart',{type:'line',data:{labels,datasets:[{label:'ARR/FTE',data:s.map(x=>x.af),borderColor:ACC2,borderWidth:2.5,tension:.25,pointRadius:0,fill:true,backgroundColor:'rgba(46,117,182,.08)'}]},options:baseOpts()});
+}
+
+/* ===== AI ECON ===== */
+const aiDef={tokens:60,tokG:6,cpm:4,hrs:500,hrc:65,upl:3,scaleSav:40};
+function setAIUI(){for(const k in aiDef)$(k).value=aiDef[k];}
+function resetAI(){setAIUI();updateAI();}
+function updateAI(){$('v_tokens').textContent=(+$('tokens').value)+'M';$('v_tokG').textContent=(+$('tokG').value)+'%';$('v_cpm').textContent='$'+(+$('cpm').value).toFixed(1);$('v_hrs').textContent=(+$('hrs').value)+' hrs';$('v_hrc').textContent='$'+(+$('hrc').value);$('v_upl').textContent=(+$('upl').value).toFixed(1)+'%';$('v_scale').textContent=(+$('scaleSav').value)+'%';
+  const t0=+$('tokens').value,tg=+$('tokG').value/100,cpm=+$('cpm').value,hrs=+$('hrs').value,hrc=+$('hrc').value,upl=+$('upl').value/100,sc=+$('scaleSav').value/100,H=24,rg=avgRevGrowth(),r0=LAST.revenue,labels=futureLabels(H);
+  const cost=[],prod=[],revv=[],val=[],cum=[],pct=[];let run=0,pay=null;
+  for(let i=1;i<=H;i++){const um=Math.pow(1+tg,i-1),tok=t0*um,c=tok*cpm,sav=hrs*hrc*((1-sc)+sc*um),rev=r0*Math.pow(1+rg,i),rv=rev*upl,v=sav+rv,net=v-c;run+=net;if(pay===null&&run>0)pay=i;cost.push(Math.round(c));prod.push(Math.round(sav));revv.push(Math.round(rv));val.push(Math.round(v));cum.push(Math.round(run));pct.push(+(c/rev*100).toFixed(2));}
+  const cN=cost[0],vN=val[0],roi=cN>0?(vN-cN)/cN:0,pctN=pct[0],annNet=cum[11];
+  const k=[];k.push(kc('Monthly AI spend',fK(cN),'tokens × rate'));k.push(kc('AI % of revenue',pctN.toFixed(1)+'%','',pctN<5?'ok':pctN<10?'warn':'bad'));k.push(kc('Monthly ROI',(roi*100).toFixed(0)+'%','value vs cost',roi>=2?'ok':roi>=0?'warn':'bad'));k.push(kc('Payback',pay?pay+' mo':'>24 mo','cum net>0',pay&&pay<=3?'ok':pay&&pay<=12?'warn':'bad'));k.push(kc('Year-1 net value',fK(annNet),'value−cost',annNet>0?'ok':'bad'));$('aiKpis').innerHTML=k.join('');
+  const b=$('aiBanner');if(roi>=2){b.className='banner ok';b.textContent='✓ Strong AI ROI — $1 of tokens returns $'+(roi+1).toFixed(1)+' in value.';}else if(roi>=0){b.className='banner warn';b.textContent='◐ Positive but modest AI ROI.';}else{b.className='banner bad';b.textContent='⚠ AI spend exceeds value at these settings.';}
+  mkChart('aiValChart',{type:'line',data:{labels,datasets:[{label:'AI token cost',data:cost,borderColor:RED,borderWidth:2.5,tension:.25,pointRadius:0,fill:true,backgroundColor:'rgba(185,28,28,.07)'},{label:'Productivity value',data:prod,borderColor:ACC2,borderWidth:2,tension:.25,pointRadius:0},{label:'Revenue uplift',data:revv,borderColor:GREEN,borderWidth:2,tension:.25,pointRadius:0}]},options:baseOpts()});
+  mkChart('aiCumChart',{type:'line',data:{labels,datasets:[{label:'Cumulative net value',data:cum,borderColor:GREEN,borderWidth:2.5,tension:.25,pointRadius:0,fill:true,backgroundColor:'rgba(21,128,61,.08)'}]},options:Object.assign(baseOpts(),{scales:{y:{ticks:{callback:v=>fK(v),font:{size:10}},grid:{color:c=>c.tick.value===0?'#ef4444':'rgba(0,0,0,.06)'}},x:{ticks:{font:{size:9},maxRotation:0,autoSkip:true}}}})});
+  mkChart('aiPctChart',{type:'line',data:{labels,datasets:[{label:'AI cost % of revenue',data:pct,borderColor:AMBER,borderWidth:2.5,tension:.25,pointRadius:0}]},options:Object.assign(baseOpts(false),{scales:{y:{ticks:{callback:v=>v+'%',font:{size:10}}},x:{ticks:{font:{size:9},maxRotation:0,autoSkip:true}}}})});
+}
+
+function showTab(t){document.querySelectorAll('.tab').forEach(e=>e.classList.toggle('active',e.dataset.t===t));document.querySelectorAll('.panel').forEach(e=>e.classList.toggle('active',e.id===t));
+  if(t==='dash'){renderMap();renderKpis();initMixIfNeeded();}else if(t==='svc')renderSvc();else if(t==='cash')updateCash();else if(t==='unit')updateUnit();else updateAI();}
+let mixDone=false;function initMixIfNeeded(){if(!mixDone){mkChart('mixChart',{type:'line',data:{labels:Px.map(mlabel),datasets:SLIST.map(sl=>({label:sl.replace('Chronic Care Management','CCM').replace('Value-Based Care','VBC'),data:SLx[sl].rev,borderColor:SLCOL[sl],backgroundColor:SLCOL[sl]+'55',fill:true,tension:.25,pointRadius:0,borderWidth:2}))},options:Object.assign(baseOpts(),{scales:{y:{stacked:true,ticks:{callback:v=>fK(v),font:{size:10}}},x:{ticks:{font:{size:9},maxRotation:0,autoSkip:true}}}})});mixDone=true;}}
+['cash0','revG','opexG','gm','stress','raise','rmonth','horizon','nstates','entry','srev','smarg','hire','hcost'].forEach(id=>$(id).addEventListener('input',updateCash));
+['includeSM','target','churnFloor'].forEach(id=>$(id).addEventListener('input',updateUnit));
+['tokens','tokG','cpm','hrs','hrc','upl','scaleSav'].forEach(id=>$(id).addEventListener('input',updateAI));
+setCashUI();setUnitUI();setAIUI();initMap();initMixIfNeeded();
+//APP-END
+</script></body></html>

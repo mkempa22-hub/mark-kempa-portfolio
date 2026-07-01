@@ -1,0 +1,465 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Capitation Studio — Multi-State Senior Care Model</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box}
+:root{--ink:#e9edf3;--muted:#97a2b2;--line:#272d38;--bg:#0f1216;--card:#161a21;
+ --ac:#4f46e5;--teal:#0ea5a4;--amber:#f59e0b;--rose:#e11d48;--green:#10b981;--red:#ef4444;
+ --A:#4f46e5;--B:#0ea5a4;--C:#f59e0b;--D:#e11d48;--shadow:0 12px 32px -20px rgba(20,28,60,.5);color-scheme:dark}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:'Inter',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+/* appbar */
+.appbar{position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:16px;padding:9px 20px;background:rgba(15,18,22,.86);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.brand{font-weight:800;font-size:15px;letter-spacing:-.02em;display:flex;align-items:center;gap:9px;white-space:nowrap}
+.brand .mark{width:24px;height:24px;border-radius:7px;background:linear-gradient(135deg,#4f46e5,#0ea5a4);display:inline-block}
+.brand span{font-weight:500;font-size:11.5px;color:var(--muted)}
+.pills{display:flex;gap:8px;margin-left:6px;flex:1;overflow-x:auto;scrollbar-width:none}
+.pills::-webkit-scrollbar{display:none}
+.pill{display:flex;flex-direction:column;padding:5px 13px;border-radius:11px;background:#1b2028;border:1px solid var(--line);white-space:nowrap}
+.pill .pv{font-weight:750;font-size:13.5px;letter-spacing:-.01em}
+.pill .pl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:1px}
+.pill.up .pv{color:var(--green)}.pill.down .pv{color:var(--red)}
+.btn{border:none;cursor:pointer;font-family:inherit;font-weight:650;border-radius:11px;transition:.18s}
+.btn-as{background:linear-gradient(135deg,#4f46e5,#6366f1);color:#fff;font-size:13px;padding:9px 16px;box-shadow:0 8px 20px -10px rgba(79,70,229,.7);white-space:nowrap}
+.btn-as:hover{transform:translateY(-1px);box-shadow:0 12px 24px -10px rgba(79,70,229,.8)}
+/* shell */
+.shell{display:grid;grid-template-columns:200px 1fr;max-width:1320px;margin:0 auto}
+.sidenav{position:sticky;top:52px;align-self:start;height:calc(100vh - 52px);padding:22px 14px;display:flex;flex-direction:column;gap:3px}
+.sidenav a{display:flex;align-items:center;gap:9px;padding:9px 13px;border-radius:10px;color:var(--muted);text-decoration:none;font-weight:600;font-size:13px;border-left:3px solid transparent;transition:.15s}
+.sidenav a .i{width:7px;height:7px;border-radius:50%;background:#cfd5e3}
+.sidenav a:hover{background:#1b2028;color:var(--ink)}
+.sidenav a.active{background:#1b2028;color:#a5b4ff;border-left-color:#7c75f2;box-shadow:var(--shadow)}
+.sidenav a.active .i{background:var(--ac)}
+.navfoot{margin-top:auto;font-size:10.5px;color:#9aa3b4;padding:10px 13px;line-height:1.5}
+.content{padding:24px 28px 90px;min-width:0}
+section{scroll-margin-top:70px;margin-bottom:38px}
+.shead{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.shead .num{width:28px;height:28px;border-radius:9px;background:#1b2028;color:var(--ac);font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center}
+.shead h2{font-size:18px;margin:0;font-weight:750;letter-spacing:-.02em}
+.shead p{color:var(--muted);font-size:12.5px;margin:1px 0 0}
+.grid{display:grid;gap:16px}.g2{grid-template-columns:1fr 1fr}.g13{grid-template-columns:1.45fr 1fr}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 18px 14px;box-shadow:var(--shadow);transition:transform .18s,box-shadow .18s}
+.card:hover{transform:translateY(-2px);box-shadow:0 18px 40px -22px rgba(20,28,60,.5)}
+.card h3{margin:0 0 2px;font-size:14px;font-weight:700}.card .cap{margin:0 0 12px;font-size:12px;color:var(--muted)}
+.chartbox{position:relative;height:262px}.chartbox.tall{height:300px}
+/* hero */
+.hero{background:linear-gradient(135deg,#0b1220 0%,#23306a 58%,#4f46e5 120%);color:#eef1fb;border-radius:20px;padding:26px 26px 22px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.hero:after{content:"";position:absolute;right:-60px;top:-60px;width:240px;height:240px;border-radius:50%;background:radial-gradient(circle,rgba(124,117,242,.5),transparent 70%)}
+.hero .eg{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#9db4e6;font-weight:700}
+.hero h1{font-size:25px;margin:6px 0 6px;font-weight:800;letter-spacing:-.02em}
+.hero p{margin:0;color:#bcc8e3;font-size:13.5px;max-width:720px}
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:20px;position:relative;z-index:1}
+.kpi{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:13px;padding:13px 14px}
+.kpi .v{font-size:21px;font-weight:780;letter-spacing:-.02em;line-height:1.1}
+.kpi .l{font-size:10.5px;color:#aebbd6;margin-top:5px}
+.kpi .s{font-size:10px;margin-top:6px;font-weight:600}
+.up2{color:#5ef0c0}.down2{color:#ff9a9a}.flat2{color:#cdd7ec}
+/* contract cards */
+.ccards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.cc{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;position:relative;overflow:hidden;box-shadow:var(--shadow);transition:transform .18s}
+.cc:hover{transform:translateY(-2px)}
+.cc:before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px}
+.cc.A:before{background:var(--A)}.cc.B:before{background:var(--B)}.cc.C:before{background:var(--C)}.cc.D:before{background:var(--D)}
+.cc .tag{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.cc .nm2{font-size:15px;font-weight:750;margin:3px 0 2px}.cc .rm{font-size:11px;color:var(--muted);margin-bottom:11px;min-height:30px}
+.cc .row{display:flex;justify-content:space-between;font-size:12.5px;padding:5px 0;border-top:1px solid var(--line)}
+.pos{color:var(--green)}.neg{color:var(--red)}
+/* cmp */
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.cmp .box{border:1px solid var(--line);border-radius:13px;padding:14px}.cmp .box h4{margin:0 0 2px;font-size:13px}.cmp .box .sub{font-size:11px;color:var(--muted);margin:0 0 10px}
+.cmp .mrow{display:flex;justify-content:space-between;font-size:12.5px;padding:5px 0;border-top:1px dashed var(--line)}
+.note{font-size:12px;color:var(--muted);margin-top:12px}
+/* contract tabs */
+.ctabs{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.ctab{border:1px solid var(--line);background:#161a21;color:var(--muted);font-size:12.5px;font-weight:650;padding:8px 15px;border-radius:11px;cursor:pointer;display:flex;align-items:center;gap:8px;transition:.15s}
+.ctab:hover{border-color:#c7ccda}
+.ctab.active{background:#0b1220;color:#fff;border-color:#0b1220}
+.ctab .dot{width:8px;height:8px;border-radius:50%}
+/* tables */
+.cfwrap{overflow-x:auto;margin-top:4px}
+table.cf{width:100%;border-collapse:collapse;font-size:11px;font-variant-numeric:tabular-nums;white-space:nowrap}
+table.cf th,table.cf td{padding:6px 8px;text-align:right}
+table.cf th{font-size:10px;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);border-bottom:2px solid var(--line)}
+table.cf th.lbl,table.cf td.lbl{text-align:left;font-weight:600;position:sticky;left:0;background:#161a21;min-width:188px}
+table.cf td{border-bottom:1px solid #232a34;color:#c4ccd8}
+table.cf tr.sub td{font-weight:700;border-top:1px solid var(--line)}
+table.cf tr.net td{font-weight:800;color:var(--ink);border-top:2px solid var(--ink)}
+table.cf tr.cum td{font-weight:700;background:#1b2028}
+table.cf .tot{font-weight:700;border-left:2px solid var(--line);background:#161a21}
+table.cf .neg{color:var(--red)}
+/* drawer + controls */
+.overlay{position:fixed;inset:0;background:rgba(10,16,32,.5);opacity:0;visibility:hidden;transition:.25s;z-index:50}
+.overlay.open{opacity:1;visibility:visible}
+.drawer{position:fixed;top:0;right:0;height:100vh;width:720px;max-width:96vw;background:var(--bg);box-shadow:-24px 0 60px -24px rgba(0,0,0,.45);transform:translateX(101%);transition:transform .3s cubic-bezier(.4,0,.2,1);z-index:60;display:flex;flex-direction:column}
+.drawer.open{transform:none}
+.drawer-h{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;background:#0b1220;color:#fff}
+.drawer-h h2{margin:0;font-size:15px;font-weight:700}
+.drawer-h button{background:rgba(255,255,255,.15);color:#fff;border:none;width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:15px}
+.drawer-b{overflow-y:auto;padding:18px 20px}
+.presets{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.pbtn{border:1px solid var(--line);background:#1b2028;color:var(--ink);font-size:12px;font-weight:600;padding:8px 13px;border-radius:10px;cursor:pointer;transition:.15s}
+.pbtn:hover{border-color:var(--ac);color:var(--ac)}
+.pbtn.reset{margin-left:auto;color:var(--muted)}
+.grp{margin-bottom:16px}.grp-t{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 11px}
+.sliders{display:grid;grid-template-columns:1fr 1fr;gap:13px 18px}
+.sl label{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px}.sl label b{color:var(--ac);font-variant-numeric:tabular-nums}
+.sl input[type=range]{width:100%;accent-color:var(--ac)}
+.nums{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.nm label{display:block;font-size:11.5px;color:var(--muted);margin-bottom:4px}
+.nm input{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:9px;font-size:13px;font-variant-numeric:tabular-nums;font-family:inherit}
+.nm input:focus{outline:none;border-color:var(--ac)}
+table.ct{width:100%;border-collapse:collapse;font-size:12px}
+table.ct th{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:700;text-align:right;padding:6px 5px}
+table.ct th:first-child{text-align:left}
+table.ct td{padding:4px 5px;border-top:1px solid var(--line)}
+table.ct td:first-child{font-weight:700;white-space:nowrap}
+table.ct .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:middle}
+table.ct input{width:66px;padding:5px 7px;border:1px solid var(--line);border-radius:7px;font-size:12px;text-align:right;font-variant-numeric:tabular-nums;font-family:inherit}
+table.ct input:focus{outline:none;border-color:var(--ac)}
+@media(max-width:1000px){.shell{grid-template-columns:1fr}.sidenav{display:none}.kpis{grid-template-columns:repeat(2,1fr)}.g2,.g13,.ccards{grid-template-columns:1fr}.cmp{grid-template-columns:1fr}.sliders,.nums{grid-template-columns:1fr}}
+
+.stcards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.scard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:var(--shadow)}
+.scard .nm2{font-size:15px;font-weight:750}.scard .rm{font-size:11px;color:var(--muted);margin:2px 0 10px}
+.scard .row{display:flex;justify-content:space-between;font-size:12.5px;padding:5px 0;border-top:1px solid var(--line)}
+@media(max-width:1000px){.stcards{grid-template-columns:1fr}}
+</style></head><body>
+<div class="appbar">
+  <div class="brand"><span class="mark"></span>Capitation Studio <span>· Multi-State Senior Care</span></div>
+  <div class="pills" id="pills"></div>
+  <button class="btn btn-as" onclick="openDrawer()">⚙ Assumptions</button>
+</div>
+<div class="shell">
+  <nav class="sidenav">
+    <a href="#overview" class="navlink active"><span class="i"></span>Overview</a>
+    <a href="#growth" class="navlink"><span class="i"></span>Growth engine</a>
+    <a href="#states" class="navlink"><span class="i"></span>States</a>
+    <a href="#contracts" class="navlink"><span class="i"></span>Contracts</a>
+    <a href="#detail" class="navlink"><span class="i"></span>Contract detail</a>
+    <a href="#cashflow" class="navlink"><span class="i"></span>Cash flow</a>
+    <a href="#levers" class="navlink"><span class="i"></span>Levers</a>
+    <div class="navfoot">Illustrative model · synthetic, directional assumptions. Centers drive the growth; each center ramps a panel mixed across MA contracts; MA economics vary by state.</div>
+  </nav>
+  <main class="content">
+    <section id="overview"><div class="hero">
+      <div class="eg">Value-Based Primary Care · Interactive Model</div>
+      <h1>Multi-State Senior Care Platform</h1>
+      <p>A de-novo senior primary-care platform: <b>center count is the growth driver</b>, each new center ramps its panel across a mix of MA contracts, and contract economics differ by state. Open <b>Assumptions</b> to flex the rollout — everything recomputes instantly.</p>
+      <div class="kpis" id="kpis"></div>
+    </div></section>
+
+    <section id="growth"><div class="shead"><div class="num">1</div><div><h2>Growth Engine &amp; J-Curve</h2><p>Center rollout drives members; each center matures over ~2 years</p></div></div>
+      <div class="grid g2">
+        <div class="card"><h3>Centers &amp; members</h3><p class="cap">Monthly, 36 months</p><div class="chartbox"><canvas id="cGrowth"></canvas></div></div>
+        <div class="card"><h3>Path to profitability</h3><p class="cap">Annual EBITDA &amp; center count</p><div class="chartbox"><canvas id="cEbitda"></canvas></div></div>
+      </div>
+      <div class="card" style="margin-top:16px"><h3>Single-center maturity curve (unit economics)</h3><p class="cap">One center by age: panel fills &amp; center-level margin PMPM turns positive</p><div class="chartbox"><canvas id="cMaturity"></canvas></div></div>
+    </section>
+
+    <section id="states"><div class="shead"><div class="num">2</div><div><h2>States</h2><p>MA contract economics by market · centers roll out state by state</p></div></div>
+      <div class="stcards" id="stcards"></div>
+      <div class="card" style="margin-top:16px"><h3>Year-3 revenue &amp; EBITDA by state</h3><p class="cap">EBITDA after center-level opex (pre-corporate)</p><div class="chartbox"><canvas id="cStates"></canvas></div></div>
+    </section>
+
+    <section id="contracts"><div class="shead"><div class="num">3</div><div><h2>Contract Portfolio</h2><p>Members split across four MA / Medicare structures (mature, Year 3)</p></div></div>
+      <div class="ccards" id="ccards"></div>
+      <div class="grid g2" style="margin-top:16px">
+        <div class="card"><h3>Contribution by contract</h3><p class="cap">Year-3 contribution ($)</p><div class="chartbox"><canvas id="cContrib"></canvas></div></div>
+        <div class="card"><h3>Medical loss ratio</h3><p class="cap">Actual TCOC ÷ risk-adjusted premium (Yr 3)</p><div class="chartbox"><canvas id="cMlr"></canvas></div></div>
+      </div>
+    </section>
+
+    <section id="detail"><div class="shead"><div class="num">4</div><div><h2>Contract Detail</h2><p>Drill into one contract — quarterly P&amp;L and cash-timing view</p></div></div>
+      <div class="ctabs" id="ctabs"></div>
+      <div class="card"><h3 id="plDetailTitle">Contract P&amp;L</h3><p class="cap">Quarterly, 3-year (full $)</p><div class="cfwrap"><table class="cf" id="plDetail"></table></div></div>
+      <div class="card" style="margin-top:16px"><h3 id="cfDetailTitle">Cash flow — timing of cash</h3><p class="cap">Capitation/fees received prospectively; claims &amp; settlements lag</p><div class="cfwrap"><table class="cf" id="cfDetail"></table></div></div>
+    </section>
+
+    <section id="cashflow"><div class="shead"><div class="num">5</div><div><h2>Cash Flow</h2><p>Consolidated float, two operating structures &amp; the quarterly statement</p></div></div>
+      <div class="grid g13">
+        <div class="card"><h3>Cumulative cash vs. IBNR float</h3><p class="cap">Delegated full-cap: cap now, claims in arrears (36 mo)</p><div class="chartbox"><canvas id="cCash"></canvas></div></div>
+        <div class="card"><h3>Two ways to run global cap</h3><p class="cap">Identical economics — different cash</p><div class="cmp" id="cmp"></div><p class="note">Same net result; what differs is who pays claims, who holds the float, and when cash lands.</p></div>
+      </div>
+      <div class="card" style="margin-top:16px"><h3>Consolidated cash flow statement</h3><p class="cap">Quarterly, 3-year (full $)</p><div class="cfwrap"><table class="cf" id="cfTable"></table></div></div>
+    </section>
+
+    <section id="levers"><div class="shead"><div class="num">6</div><div><h2>The Levers</h2><p>MA economics by state &amp; the cost-of-care mix</p></div></div>
+      <div class="grid g2">
+        <div class="card"><h3>Premium, TCOC &amp; RAF by state</h3><p class="cap">The MA-contract-by-state levers</p><div class="chartbox"><canvas id="cLevers"></canvas></div></div>
+        <div class="card"><h3>Total cost of care — spend mix</h3><p class="cap">Where the medical dollars go</p><div class="chartbox"><canvas id="cBuckets"></canvas></div></div>
+      </div>
+    </section>
+  </main>
+</div>
+<div class="overlay" id="overlay" onclick="closeDrawer()"></div>
+<aside class="drawer" id="drawer"><div class="drawer-h"><h2>⚙ Assumptions &amp; Levers</h2><button onclick="closeDrawer()">✕</button></div><div class="drawer-b" id="panelBody"></div></aside>
+<script>
+const DEFAULT={"states": [{"name": "Florida", "centers_start": 3, "opens": [2, 2, 2], "prem": 1450, "raf": 1.12, "tcoc": 1140}, {"name": "Texas", "centers_start": 1, "opens": [1, 2, 2], "prem": 1320, "raf": 1.06, "tcoc": 1070}, {"name": "Arizona", "centers_start": 0, "opens": [1, 1, 2], "prem": 1250, "raf": 1.02, "tcoc": 1010}], "mix": {"A": 0.65, "B": 0.15, "C": 0.12, "D": 0.08}, "panel_mature": 1200, "panel_open_pct": 0.08, "panel_ramp_m": 24, "mat_months": 24, "raf_open": 0.88, "tcoc_open": 1.1, "center_fixed": 95000, "cmvar": 18, "ga": 120000, "cmPlan": 45, "arch": {"A": {"capPct": 0.9, "cm": 0, "pccp": 0, "ffs": 0, "target": 0, "ssplit": 0, "lsplit": 0, "downside": 0, "slprem": 35, "slrec": 26, "fullcap": 1}, "B": {"capPct": 0, "cm": 55, "pccp": 0, "ffs": 0, "target": 0.88, "ssplit": 0.5, "lsplit": 0.5, "downside": 1, "slprem": 0, "slrec": 0, "fullcap": 0}, "C": {"capPct": 0, "cm": 0, "pccp": 0, "ffs": 50, "target": 0.9, "ssplit": 0.6, "lsplit": 0, "downside": 0, "slprem": 0, "slrec": 0, "fullcap": 0}, "D": {"capPct": 0, "cm": 0, "pccp": 80, "ffs": 0, "target": 0.98, "ssplit": 0.5, "lsplit": 0.5, "downside": 1, "slprem": 0, "slrec": 0, "fullcap": 0}}, "buckets": {"Inpatient": 0.3, "Outpatient / ED": 0.16, "Specialist professional": 0.18, "Primary care (internal)": 0.08, "Post-acute / SNF": 0.1, "Pharmacy (Part D)": 0.12, "Ancillary (lab / imaging / DME)": 0.04, "Other": 0.02}};let S=structuredClone(DEFAULT);
+const KEYS=['A','B','C','D'];
+const COL={A:'#4f46e5',B:'#0ea5a4',C:'#f59e0b',D:'#e11d48',green:'#10b981',red:'#ef4444',ink:'#0b1220',muted:'#6b7689',grid:'#272d38'};
+const STCOL=['#4f46e5','#0ea5a4','#f59e0b','#e11d48','#7c75f2'];
+const usd=v=>{const a=Math.abs(v),s=v<0?'-':'';if(a>=1e6)return s+'$'+(a/1e6).toFixed(1)+'M';if(a>=1e3)return s+'$'+(a/1e3).toFixed(0)+'k';return s+'$'+a.toFixed(0);};
+const pmpm=v=>(v<0?'-$':'$')+Math.abs(v).toFixed(0);
+const pct=v=>(v*100).toFixed(1)+'%';
+const fmtN=v=>Math.round(v).toLocaleString();
+function compute(S){
+ const H=36, K=['A','B','C','D'];
+ const Z=()=>Array(H).fill(0);
+ const ws=K.reduce((a,k)=>a+S.mix[k],0)||1; const mix={}; K.forEach(k=>mix[k]=S.mix[k]/ws);
+ const mem=Z(),cen=Z(),rev=Z(),med=Z(),cashin=Z(),claimsInc=Z(),slpT=Z();
+ const per={}; K.forEach(k=>per[k]={mm:Z(),cap:Z(),cm:Z(),pccp:Z(),ffs:Z(),settle:Z(),totrev:Z(),actual:Z(),claims:Z(),slprem:Z(),slrec:Z(),medcost:Z(),contrib:Z(),rp:Z()});
+ const states=S.states.map(st=>({name:st.name,members:Z(),centers:Z(),rev:Z(),medmargin:Z(),centeropex:Z()}));
+ for(let si=0;si<S.states.length;si++){const st=S.states[si];
+  let openM=[];for(let i=0;i<st.centers_start;i++)openM.push(0);
+  for(let y=0;y<3;y++){const n=st.opens[y];for(let m=0;m<n;m++)openM.push(y*12+Math.floor((m+0.5)*12/Math.max(n,1)));}
+  for(let t=0;t<H;t++){let co=0,mt=0,rvS=0,mdS=0;
+   for(let ci=0;ci<openM.length;ci++){if(openM[ci]>t)continue;co++;const age=t-openM[ci];
+    const fill=Math.min(1,S.panel_open_pct+(1-S.panel_open_pct)*age/S.panel_ramp_m);
+    const mc=S.panel_mature*fill;const matf=Math.min(1,age/S.mat_months);
+    const rafFac=S.raf_open+(1-S.raf_open)*matf,tcocFac=S.tcoc_open+(1-S.tcoc_open)*matf;
+    mt+=mc;
+    for(const k of K){const a=S.arch[k];const mk=mc*mix[k];const RAF=st.raf*rafFac,tc=st.tcoc*tcocFac;
+     const cap=mk*st.prem*RAF*a.capPct,cm=mk*a.cm,pccp=mk*a.pccp,ffs=mk*a.ffs;
+     const bench=mk*st.prem*RAF*a.target,actual=mk*tc,sav=bench-actual;
+     const settle=a.fullcap?0:(sav>=0?sav*a.ssplit:sav*a.lsplit*a.downside);
+     const totrev=cap+cm+pccp+ffs+settle;
+     const claims=a.fullcap?actual:0,slp=a.fullcap?mk*a.slprem:0,slr=a.fullcap?mk*a.slrec:0;
+     const medcost=claims+slp-slr,contrib=totrev-medcost;
+     const P=per[k];P.mm[t]+=mk;P.cap[t]+=cap;P.cm[t]+=cm;P.pccp[t]+=pccp;P.ffs[t]+=ffs;P.settle[t]+=settle;P.totrev[t]+=totrev;P.actual[t]+=actual;P.claims[t]+=claims;P.slprem[t]+=slp;P.slrec[t]+=slr;P.medcost[t]+=medcost;P.contrib[t]+=contrib;P.rp[t]+=mk*st.prem*RAF;
+     rev[t]+=totrev;med[t]+=medcost;cashin[t]+=cap+cm+pccp+ffs;claimsInc[t]+=claims;slpT[t]+=slp;
+     rvS+=totrev;mdS+=medcost;}
+   }
+   mem[t]+=mt;cen[t]+=co;
+   states[si].members[t]=mt;states[si].centers[t]=co;states[si].rev[t]=rvS;states[si].medmargin[t]=rvS-mdS;states[si].centeropex[t]=co*S.center_fixed+mt*S.cmvar;
+  }
+ }
+ const opex=mem.map((m,i)=>cen[i]*S.center_fixed+m*S.cmvar+S.ga);
+ const medmargin=rev.map((r,i)=>r-med[i]);
+ const ebitda=medmargin.map((m,i)=>m-opex[i]);
+ const sr=(a,s,e)=>a.slice(s,e).reduce((x,y)=>x+y,0);
+ const yr=f=>[0,1,2].map(y=>f(y*12,y*12+12));
+ const annual={revenue:yr((s,e)=>sr(rev,s,e)),ebitda:yr((s,e)=>sr(ebitda,s,e)),medmargin:yr((s,e)=>sr(medmargin,s,e)),opex:yr((s,e)=>sr(opex,s,e)),members:[mem[11],mem[23],mem[35]],centers:[cen[11],cen[23],cen[35]]};
+ const contracts={};
+ for(const k of K){const P=per[k];const s=24,e=36;const tr=sr(P.totrev,s,e),ct=sr(P.contrib,s,e),mm=sr(P.mm,s,e),ac=sr(P.actual,s,e),rp=sr(P.rp,s,e);
+  contracts[k]={members:P.mm[35],totrev:tr,contrib:ct,mlr:rp?ac/rp:0,pmpm:mm?ct/mm:0};}
+ const statesum=states.map((st,si)=>({name:st.name,members:st.members[35],centers:st.centers[35],
+   revenueY3:sr(st.rev,24,36),ebitdaY3:sr(st.medmargin,24,36)-sr(st.centeropex,24,36),
+   prem:S.states[si].prem,raf:S.states[si].raf,tcoc:S.states[si].tcoc}));
+ const aMem=[],aMar=[];const st0=S.states[0];
+ for(let age=0;age<H;age++){const fill=Math.min(1,S.panel_open_pct+(1-S.panel_open_pct)*age/S.panel_ramp_m);const mc=S.panel_mature*fill;const matf=Math.min(1,age/S.mat_months);
+  const rafFac=S.raf_open+(1-S.raf_open)*matf,tcocFac=S.tcoc_open+(1-S.tcoc_open)*matf;let ct=0;
+  for(const k of K){const a=S.arch[k];const mk=mc*mix[k];const RAF=st0.raf*rafFac,tc=st0.tcoc*tcocFac;
+   const cap=mk*st0.prem*RAF*a.capPct,fee=mk*(a.cm+a.pccp+a.ffs),bench=mk*st0.prem*RAF*a.target,actual=mk*tc,sav=bench-actual;
+   const settle=a.fullcap?0:(sav>=0?sav*a.ssplit:sav*a.lsplit*a.downside);const claims=a.fullcap?actual:0,slnet=a.fullcap?mk*(a.slprem-a.slrec):0;
+   ct+=cap+fee+settle-claims-slnet;}
+  const cOpex=S.center_fixed+mc*S.cmvar;aMem.push(mc);aMar.push(mc?(ct-cOpex)/mc:0);}
+ const claimsPaid=claimsInc.map((_,i)=>i>=2?claimsInc[i-2]:0);
+ const net=cashin.map((ci,i)=>ci-(claimsPaid[i]+slpT[i]+opex[i]));
+ let s=0;const cum=net.map(x=>s+=x);s=0;const pay=claimsInc.map((ci,i)=>s+=ci-claimsPaid[i]);
+ const A=per.A;const econ=A.contrib.reduce((x,y)=>x+y,0);
+ let s1cum=0,s1pay=0;for(let t=0;t<H;t++){const paid=t>=2?A.claims[t-2]:0;s1cum+=A.cap[t]-paid-A.slprem[t]+A.slrec[t];s1pay+=A.claims[t]-paid;}
+ const s2cm=S.cmPlan*A.mm.reduce((x,y)=>x+y,0);const s2settle=econ-s2cm;
+ const detail={};K.forEach(k=>{const P=per[k];detail[k]={mm:P.mm,rp:P.rp,cap:P.cap,cm:P.cm,pccp:P.pccp,ffs:P.ffs,settle:P.settle,totrev:P.totrev,actual:P.actual,claims:P.claims,slprem:P.slprem,slrec:P.slrec,medcost:P.medcost,contrib:P.contrib};});
+ return {H,monthly:{members:mem,centers:cen,rev,medmargin,ebitda,opex},annual,contracts,statesum,maturity:{members:aMem,margin:aMar},cf:{cashin,claimsPaid,slprem:slpT,opex,net,cumcash:cum,payable:pay},cs:{econ,s1cum,s1pay,s2cm,s2settle},detail,buckets:S.buckets,mix};
+}
+
+const CH={};
+function mk(id,cfg){if(CH[id])CH[id].destroy();const el=document.getElementById(id);if(el)CH[id]=new Chart(el,cfg);}
+Chart.defaults.font.family="'Inter',-apple-system,Segoe UI,Roboto,sans-serif";Chart.defaults.font.size=11.5;Chart.defaults.color=COL.muted;
+const grid={color:COL.grid,drawBorder:false};
+const MLAB=Array.from({length:36},(_,i)=>i+1);
+const QLAB=Array.from({length:12},(_,i)=>'Q'+(i+1));
+const qsum=a=>{const r=[];for(let q=0;q<12;q++){let s=0;for(let m=0;m<3;m++)s+=a[q*3+m];r.push(s);}return r;};
+const qeom=a=>{const r=[];for(let q=0;q<12;q++)r.push(a[q*3+2]);return r;};
+
+function renderAll(R){
+ window.__R=R;const A=R.annual;
+ const pills=[{v:usd(A.revenue[2]),l:'Revenue · Yr3'},{v:usd(A.ebitda[2]),l:'EBITDA · Yr3',c:A.ebitda[2]>=0?'up':'down'},{v:A.centers[2],l:'Centers · Yr3'},{v:Math.round(A.members[2]).toLocaleString(),l:'Members · Yr3'}];
+ document.getElementById('pills').innerHTML=pills.map(p=>`<div class="pill ${p.c||''}"><span class="pv">${p.v}</span><span class="pl">${p.l}</span></div>`).join('');
+ const k=[{v:usd(A.revenue[2]),l:'Revenue · Year 3',s:'platform scale',c:'flat2'},
+  {v:usd(A.ebitda[0]),l:'EBITDA · Year 1',s:'investment phase',c:'down2'},
+  {v:usd(A.ebitda[2]),l:'EBITDA · Year 3',s:A.ebitda[2]>=0?'scaled to profit':'still investing',c:A.ebitda[2]>=0?'up2':'down2'},
+  {v:A.centers[0]+' → '+A.centers[2],l:'Centers · Y1 → Y3',s:S.states.length+' states',c:'up2'},
+  {v:(A.members[2]/1000).toFixed(1)+'k',l:'Members · Year 3',s:'across all centers',c:'flat2'}];
+ document.getElementById('kpis').innerHTML=k.map(x=>`<div class="kpi"><div class="v">${x.v}</div><div class="l">${x.l}</div><div class="s ${x.c}">${x.s}</div></div>`).join('');
+
+ const gc=document.getElementById('cGrowth').getContext('2d');const gg=gc.createLinearGradient(0,0,0,260);gg.addColorStop(0,'rgba(79,70,229,.25)');gg.addColorStop(1,'rgba(79,70,229,0)');
+ mk('cGrowth',{data:{labels:MLAB,datasets:[
+  {type:'line',label:'Members',data:R.monthly.members,borderColor:COL.A,backgroundColor:gg,fill:true,borderWidth:2.5,tension:.3,pointRadius:0,yAxisID:'y'},
+  {type:'line',label:'Centers',data:R.monthly.centers,borderColor:COL.teal,borderWidth:2.5,stepped:true,pointRadius:0,yAxisID:'y1'}]},
+  options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:true,labels:{usePointStyle:true,boxWidth:8}},tooltip:{callbacks:{label:c=>c.dataset.label==='Members'?'Members '+Math.round(c.parsed.y).toLocaleString():'Centers '+c.parsed.y}}},scales:{x:{grid:{display:false},ticks:{maxTicksLimit:12,callback:(v,i)=>'M'+MLAB[i]}},y:{grid,ticks:{callback:v=>(v/1000).toFixed(0)+'k'}},y1:{position:'right',grid:{drawOnChartArea:false},ticks:{precision:0}}}}});
+
+ mk('cEbitda',{data:{labels:['Year 1','Year 2','Year 3'],datasets:[
+  {type:'bar',label:'EBITDA',data:A.ebitda,yAxisID:'y',borderRadius:7,backgroundColor:A.ebitda.map(v=>v<0?COL.red:COL.green)},
+  {type:'line',label:'Centers (EOY)',data:A.centers,yAxisID:'y1',borderColor:COL.ink,backgroundColor:COL.ink,tension:.35,borderWidth:2.5,pointRadius:4,pointBackgroundColor:'#fff',pointBorderWidth:2}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{usePointStyle:true,boxWidth:8}},tooltip:{callbacks:{label:c=>c.dataset.label==='EBITDA'?'EBITDA '+usd(c.parsed.y):'Centers '+c.parsed.y}}},scales:{y:{grid,ticks:{callback:usd}},y1:{position:'right',grid:{drawOnChartArea:false},ticks:{precision:0}}}}});
+
+ const mc=document.getElementById('cMaturity').getContext('2d');const mg=mc.createLinearGradient(0,0,0,260);mg.addColorStop(0,'rgba(16,185,129,.22)');mg.addColorStop(1,'rgba(16,185,129,0)');
+ mk('cMaturity',{data:{labels:Array.from({length:36},(_,i)=>i),datasets:[
+  {type:'line',label:'Members / center',data:R.maturity.members,borderColor:COL.A,borderWidth:2.5,tension:.3,pointRadius:0,yAxisID:'y'},
+  {type:'line',label:'Center margin PMPM',data:R.maturity.margin,borderColor:COL.green,backgroundColor:mg,fill:true,borderWidth:2.5,tension:.3,pointRadius:0,yAxisID:'y1'}]},
+  options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:true,labels:{usePointStyle:true,boxWidth:8}},tooltip:{callbacks:{label:c=>c.dataset.label.includes('Members')?Math.round(c.parsed.y).toLocaleString()+' members':'Margin '+pmpm(c.parsed.y)+' PMPM'}}},scales:{x:{grid:{display:false},title:{display:true,text:'Months since center opened'},ticks:{maxTicksLimit:12}},y:{grid,ticks:{callback:v=>(v/1000).toFixed(1)+'k'}},y1:{position:'right',grid:{drawOnChartArea:false},ticks:{callback:v=>pmpm(v)}}}}});
+
+ // states
+ document.getElementById('stcards').innerHTML=R.statesum.map((s,i)=>`<div class="scard" style="border-top:4px solid ${STCOL[i%STCOL.length]}">
+  <div class="nm2">${s.name}</div><div class="rm">${s.centers} centers · ${Math.round(s.members).toLocaleString()} members</div>
+  <div class="row"><span>Year-3 revenue</span><b>${usd(s.revenueY3)}</b></div>
+  <div class="row"><span>Year-3 EBITDA*</span><b class="${s.ebitdaY3>=0?'pos':'neg'}">${usd(s.ebitdaY3)}</b></div>
+  <div class="row"><span>Premium PMPM</span><b>$${Math.round(s.prem).toLocaleString()}</b></div>
+  <div class="row"><span>RAF · TCOC</span><b>${s.raf.toFixed(2)} · $${Math.round(s.tcoc).toLocaleString()}</b></div></div>`).join('');
+ mk('cStates',{type:'bar',data:{labels:R.statesum.map(s=>s.name),datasets:[
+  {label:'Revenue (Yr3)',data:R.statesum.map(s=>s.revenueY3),backgroundColor:'rgba(79,70,229,.85)',borderRadius:6},
+  {label:'EBITDA (Yr3)*',data:R.statesum.map(s=>s.ebitdaY3),backgroundColor:'rgba(16,185,129,.85)',borderRadius:6}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{usePointStyle:true,boxWidth:8}},tooltip:{callbacks:{label:c=>c.dataset.label+' '+usd(c.parsed.y)}}},scales:{y:{grid,ticks:{callback:usd}}}}});
+
+ // contracts
+ const cmeta={A:['A','Full / Global Cap','100% TCOC risk · % of premium'],B:['B','Two-Sided Shared','50/50 vs target + care-mgmt'],C:['C','Upside-Only','FFS floor + 60% of savings'],D:['D','ACO REACH (Pro)','PCCP + 50/50 vs benchmark']};
+ document.getElementById('ccards').innerHTML=KEYS.map(key=>{const m2=cmeta[key],c=R.contracts[key],cls=c.contrib>=0?'pos':'neg';
+  return `<div class="cc ${key}"><div class="tag">Contract ${m2[0]} · ${Math.round(R.mix[key]*100)}% of members</div><div class="nm2">${m2[1]}</div><div class="rm">${m2[2]}</div>
+  <div class="row"><span>Members (Yr3)</span><b>${Math.round(c.members).toLocaleString()}</b></div>
+  <div class="row"><span>Contribution</span><b class="${cls}">${usd(c.contrib)}</b></div>
+  <div class="row"><span>Contrib PMPM</span><b class="${c.pmpm>=0?'pos':'neg'}">${pmpm(c.pmpm)}</b></div>
+  <div class="row"><span>MLR</span><b>${pct(c.mlr)}</b></div></div>`;}).join('');
+ const ccol=KEYS.map(k=>COL[k]);
+ mk('cContrib',{type:'bar',data:{labels:KEYS.map(k=>'Contract '+k),datasets:[{data:KEYS.map(k=>R.contracts[k].contrib),backgroundColor:ccol,borderRadius:7}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>usd(c.parsed.y)}}},scales:{y:{grid,ticks:{callback:usd}}}}});
+ mk('cMlr',{type:'bar',data:{labels:KEYS.map(k=>'Contract '+k),datasets:[{data:KEYS.map(k=>R.contracts[k].mlr),backgroundColor:ccol,borderRadius:7}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>pct(c.parsed.y)}}},scales:{y:{grid,ticks:{callback:v=>(v*100).toFixed(0)+'%'},suggestedMin:0.6,suggestedMax:1.05}}}});
+
+ // cash
+ mk('cCash',{data:{labels:MLAB,datasets:[
+  {type:'bar',label:'IBNR / claims payable',data:R.cf.payable,backgroundColor:'rgba(245,158,11,.5)'},
+  {type:'line',label:'Cumulative cash',data:R.cf.cumcash,borderColor:COL.A,borderWidth:3,tension:.3,pointRadius:0}]},
+  options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:true,labels:{usePointStyle:true,boxWidth:8}},tooltip:{callbacks:{label:c=>c.dataset.label+' '+usd(c.parsed.y)}}},scales:{x:{grid:{display:false},ticks:{maxTicksLimit:12,callback:(v,i)=>'M'+MLAB[i]}},y:{grid,ticks:{callback:usd}}}}});
+ document.getElementById('cmp').innerHTML=`
+  <div class="box"><h4>Structure 1 · Delegated</h4><p class="sub">Provider pays claims</p>
+   <div class="mrow"><span>Cumulative cash</span><b class="${R.cs.s1cum>=0?'pos':'neg'}">${usd(R.cs.s1cum)}</b></div>
+   <div class="mrow"><span>IBNR float held</span><b>${usd(R.cs.s1pay)}</b></div>
+   <div class="mrow"><span>Net economics</span><b class="${R.cs.econ>=0?'pos':'neg'}">${usd(R.cs.econ)}</b></div></div>
+  <div class="box"><h4>Structure 2 · Plan Pays</h4><p class="sub">Plan pays &amp; reconciles</p>
+   <div class="mrow"><span>Care-mgmt cash</span><b class="pos">${usd(R.cs.s2cm)}</b></div>
+   <div class="mrow"><span>Settlement recv/(pay)</span><b class="${R.cs.s2settle>=0?'pos':'neg'}">${usd(R.cs.s2settle)}</b></div>
+   <div class="mrow"><span>Net economics</span><b class="${R.cs.econ>=0?'pos':'neg'}">${usd(R.cs.econ)}</b></div></div>`;
+
+ // levers by state
+ mk('cLevers',{data:{labels:R.statesum.map(s=>s.name),datasets:[
+  {type:'bar',label:'Premium PMPM',data:R.statesum.map(s=>s.prem),backgroundColor:'rgba(79,70,229,.85)',borderRadius:6,yAxisID:'y'},
+  {type:'bar',label:'TCOC PMPM',data:R.statesum.map(s=>s.tcoc),backgroundColor:'rgba(14,165,164,.85)',borderRadius:6,yAxisID:'y'},
+  {type:'line',label:'RAF',data:R.statesum.map(s=>s.raf),borderColor:COL.ink,borderWidth:2.5,pointRadius:4,pointBackgroundColor:'#fff',pointBorderWidth:2,yAxisID:'y1'}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{usePointStyle:true,boxWidth:8}},tooltip:{callbacks:{label:c=>c.dataset.label.includes('RAF')?'RAF '+c.parsed.y.toFixed(2):c.dataset.label+' '+pmpm(c.parsed.y)}}},scales:{y:{grid,ticks:{callback:v=>pmpm(v)}},y1:{position:'right',grid:{drawOnChartArea:false},suggestedMin:0.9,suggestedMax:1.2,title:{display:true,text:'RAF'}}}}});
+
+ const bl=Object.keys(R.buckets),bv=bl.map(x=>R.buckets[x]),bcols=['#4f46e5','#6366f1','#0ea5a4','#14b8a6','#f59e0b','#f97316','#e11d48','#94a3b8'];
+ mk('cBuckets',{type:'doughnut',data:{labels:bl,datasets:[{data:bv,backgroundColor:bcols,borderWidth:2,borderColor:'#161a21'}]},options:{responsive:true,maintainAspectRatio:false,cutout:'58%',plugins:{legend:{position:'right',labels:{usePointStyle:true,boxWidth:8,font:{size:10.5}}},tooltip:{callbacks:{label:c=>c.label+' '+(c.parsed*100).toFixed(0)+'%'}}}}});
+
+ renderCF(R);renderDetail(R);
+}
+
+function stmt(labels,rowsdef){
+ const fmtc=v=>{v=Math.round(v);if(v===0)return '–';const a=Math.abs(v).toLocaleString();return v<0?'($'+a+')':'$'+a;};
+ const sum=a=>a.reduce((x,y)=>x+y,0);
+ let h='<thead><tr><th class="lbl">Line item</th>'+labels.map(m=>`<th>${m}</th>`).join('')+'<th class="tot">3-Yr</th></tr></thead><tbody>';
+ for(const r of rowsdef){const lab=r[0],arr=r[1],kind=r[2],type=r[3]||'money',fyo=r[4];
+  const cls=kind===1?'sub':kind===2?'net':kind===3?'cum':'';
+  const fy=fyo!==undefined?fyo:(kind===3?arr[arr.length-1]:sum(arr));
+  const cell=v=>type==='pct'?(v*100).toFixed(1)+'%':type==='count'?Math.round(v).toLocaleString():fmtc(v);
+  h+=`<tr class="${cls}"><td class="lbl">${lab}</td>`+arr.map(v=>`<td class="${(type!=='pct'&&v<0)?'neg':''}">${cell(v)}</td>`).join('')+`<td class="tot ${(type!=='pct'&&fy<0)?'neg':''}">${cell(fy)}</td></tr>`;
+ }
+ return h+'</tbody>';
+}
+function renderCF(R){
+ const cf=R.cf;const ci=qsum(cf.cashin),cp=qsum(cf.claimsPaid),sl=qsum(cf.slprem),ox=qsum(cf.opex);
+ const out=cp.map((c,i)=>c+sl[i]+ox[i]);const net=ci.map((c,i)=>c-out[i]);let s=0;const cum=net.map(x=>s+=x);
+ const rows=[['Capitation & fees received',ci,0],['Settlement received (true-up)',ci.map(()=>0),0],['Total cash in',ci,1],
+  ['Medical claims paid (lag)',cp.map(x=>-x),0],['Stop-loss premium',sl.map(x=>-x),0],['Clinic + corporate opex',ox.map(x=>-x),0],
+  ['Total cash out',out.map(x=>-x),1],['Net operating cash flow',net,2],['Cumulative cash',cum,3]];
+ document.getElementById('cfTable').innerHTML=stmt(QLAB,rows);
+}
+let selCon='A';
+window.setCon=(k)=>{selCon=k;document.querySelectorAll('.ctab').forEach(b=>b.classList.toggle('active',b.dataset.k===k));if(window.__R)renderDetail(window.__R);};
+function buildCtabs(){const cn={A:'A · Full Cap',B:'B · Two-Sided',C:'C · Upside',D:'D · REACH'};
+ document.getElementById('ctabs').innerHTML=KEYS.map(k=>`<button class="ctab ${k===selCon?'active':''}" data-k="${k}" onclick="setCon('${k}')"><span class="dot" style="background:${COL[k]}"></span>${cn[k]}</button>`).join('');}
+function renderDetail(R){
+ const k=selCon,d=R.detail[k],fc=S.arch[k].fullcap;
+ const q=qsum;
+ const comp=[['Global capitation',d.cap],['Care management',d.cm],['Primary care cap (PCCP)',d.pccp],['FFS own services',d.ffs],['Shared savings / (loss)',d.settle]];
+ const rows=[['Member-months',q(d.mm),0,'count']];
+ for(const [lab,arr] of comp){if(arr.reduce((x,y)=>x+Math.abs(y),0)>1)rows.push([lab,q(arr),0,'money']);}
+ rows.push(['Total revenue',q(d.totrev),1,'money']);
+ if(fc){rows.push(['Medical claims',q(d.claims).map(x=>-x),0,'money']);rows.push(['Stop-loss premium',q(d.slprem).map(x=>-x),0,'money']);rows.push(['Stop-loss recoveries',q(d.slrec),0,'money']);}
+ rows.push(['Total medical cost',q(d.medcost).map(x=>-x),1,'money']);
+ rows.push(['Contribution margin',q(d.contrib),2,'money']);
+ const aq=qsum(d.actual),rq=qsum(d.rp);rows.push(['MLR (TCOC ÷ premium)',aq.map((a,i)=>rq[i]?a/rq[i]:0),0,'pct',R.contracts[k].mlr]);
+ document.getElementById('plDetail').innerHTML=stmt(QLAB,rows);
+ document.getElementById('plDetailTitle').textContent='Contract '+k+' — P&L (quarterly)';
+ const feesIn=d.cap.map((c,i)=>c+d.cm[i]+d.pccp[i]+d.ffs[i]);
+ const claimsPaid=d.claims.map((c,i)=>fc&&i>=2?d.claims[i-2]:0);
+ const fi=q(feesIn),cp=q(claimsPaid),sl=q(d.slprem);
+ const out=fi.map((_,i)=>fc?cp[i]+sl[i]:0);const net=fi.map((f,i)=>f-out[i]);let s=0;const cum=net.map(x=>s+=x);
+ const crows=[['Capitation & fees received',fi,0],['Settlement received (next-yr)',fi.map(()=>0),0],['Total cash in',fi,1]];
+ if(fc){crows.push(['Medical claims paid (lag)',cp.map(x=>-x),0]);crows.push(['Stop-loss premium',sl.map(x=>-x),0]);}
+ crows.push(['Total cash out',out.map(x=>-x),1]);crows.push(['Net operating cash flow',net,2]);crows.push(['Cumulative cash',cum,3]);
+ if(fc){let s2=0;const pay=d.claims.map((c,i)=>s2+=c-claimsPaid[i]);crows.push(['Memo: IBNR / claims payable',qeom(pay),3]);}
+ else{let s3=0;const rec=d.settle.map(x=>s3+=x);crows.push(['Memo: settlement receivable/(payable)',qeom(rec),3]);}
+ document.getElementById('cfDetail').innerHTML=stmt(QLAB,crows);
+ document.getElementById('cfDetailTitle').textContent='Contract '+k+' — cash flow (timing of cash)';
+}
+
+/* controls */
+function getP(p){return p.split('.').reduce((o,k)=>o[k],S);}
+function setP(p,v){const a=p.split('.');let o=S;for(let i=0;i<a.length-1;i++)o=o[a[i]];o[a[a.length-1]]=v;}
+function fmtV(v,f){v=+v;return f==='pct'?Math.round(v*100)+'%':f==='int'?Math.round(v):v.toFixed(2);}
+function slider(p,lab,min,max,step,fmt){const val=getP(p);return `<div class="sl"><label>${lab}<b data-disp="${p}" data-fmt="${fmt}">${fmtV(val,fmt)}</b></label><input type="range" min="${min}" max="${max}" step="${step}" value="${val}" oninput="onSlider('${p}',this.value)"></div>`;}
+window.onSlider=(p,v)=>{v=parseFloat(v);setP(p,v);const d=document.querySelector(`[data-disp="${p}"]`);if(d)d.textContent=fmtV(v,d.dataset.fmt);refresh();};
+window.onNum=(p,v,mult)=>{v=parseFloat(v);if(isNaN(v))return;setP(p,v/(mult||1));refresh();};
+window.onNumC=(p,el,mult)=>{const v=parseFloat(el.value.replace(/,/g,''));if(isNaN(v))return;setP(p,v/(mult||1));refresh();};
+window.fmtField=el=>{const v=parseFloat(el.value.replace(/,/g,''));if(!isNaN(v))el.value=v.toLocaleString();};
+const num=(p,lab,step,mult,comma)=>{mult=mult||1;const val=getP(p)*mult;return comma?`<div class="nm"><label>${lab}</label><input type="text" inputmode="numeric" value="${fmtN(val)}" oninput="onNumC('${p}',this,${mult})" onchange="fmtField(this)"></div>`:`<div class="nm"><label>${lab}</label><input type="number" step="${step}" value="${val}" oninput="onNum('${p}',this.value,${mult})"></div>`;};
+const ci=(p,step)=>`<td><input type="number" step="${step||1}" value="${+(+getP(p)).toFixed(4)}" oninput="onNum('${p}',this.value,1)"></td>`;
+const cc=p=>`<td><input type="text" inputmode="numeric" value="${fmtN(getP(p))}" oninput="onNumC('${p}',this,1)" onchange="fmtField(this)"></td>`;
+const cm=(p,step,mult)=>`<td><input type="number" step="${step}" value="${+(getP(p)*mult).toFixed(4)}" oninput="onNum('${p}',this.value,${mult})"></td>`;
+
+function buildPanel(){
+ let h=`<div class="presets">
+  <button class="pbtn" onclick="preset('base')">Base case</button>
+  <button class="pbtn" onclick="preset('grow')">Faster rollout</button>
+  <button class="pbtn" onclick="preset('slow')">Slower ramp</button>
+  <button class="pbtn" onclick="preset('shock')">Utilization shock</button>
+  <button class="pbtn reset" onclick="preset('reset')">↺ Reset</button></div>`;
+ h+=`<div class="grp"><p class="grp-t">States — centers &amp; MA contract economics</p><table class="ct"><thead><tr><th>State</th><th>Ctrs</th><th>+Y1</th><th>+Y2</th><th>+Y3</th><th>Prem</th><th>RAF</th><th>TCOC</th></tr></thead><tbody>`;
+ S.states.forEach((st,i)=>{h+=`<tr><td>${st.name}</td>`+ci('states.'+i+'.centers_start')+ci('states.'+i+'.opens.0')+ci('states.'+i+'.opens.1')+ci('states.'+i+'.opens.2')+cc('states.'+i+'.prem')+ci('states.'+i+'.raf',0.01)+cc('states.'+i+'.tcoc')+`</tr>`;});
+ h+=`</tbody></table></div>`;
+ h+=`<div class="grp"><p class="grp-t">Center membership ramp</p><div class="sliders">`+
+  slider('panel_ramp_m','Months to fill panel','12','48','1','int')+
+  slider('panel_open_pct','Members at open (% mature)','0','0.30','0.01','pct')+
+  slider('mat_months','Months to RAF/TCOC maturity','12','48','1','int')+
+  slider('raf_open','RAF at open (× mature)','0.75','1.00','0.01','d2')+
+  slider('tcoc_open','TCOC at open (× mature)','1.00','1.25','0.01','d2')+`</div>`+
+  `<div class="nums" style="margin-top:12px">`+num('panel_mature','Mature panel / center',50,1,true)+`</div></div>`;
+ h+=`<div class="grp"><p class="grp-t">Contract mix (% of members · auto-normalized)</p><div class="sliders">`+
+  slider('mix.A','A · Full Cap','0','1','0.01','pct')+slider('mix.B','B · Two-Sided','0','1','0.01','pct')+
+  slider('mix.C','C · Upside','0','1','0.01','pct')+slider('mix.D','D · REACH','0','1','0.01','pct')+`</div></div>`;
+ h+=`<div class="grp"><p class="grp-t">Costs</p><div class="nums">`+
+  num('center_fixed','Fixed opex / center / mo',1000,1,true)+num('cmvar','Care-mgmt PMPM',1,1)+num('ga','Corporate G&A / mo',1000,1,true)+num('cmPlan','Plan-pays care-mgmt PMPM',5,1)+`</div></div>`;
+ const AF=[['capPct','Cap %',1,100],['cm','Care-mgmt',1,1],['pccp','PCCP',1,1],['ffs','FFS',1,1],['target','Target %',1,100],['ssplit','Save %',5,100]];
+ h+=`<div class="grp"><p class="grp-t">Contract structures</p><table class="ct"><thead><tr><th>Contract</th>`+AF.map(f=>`<th>${f[1]}</th>`).join('')+`</tr></thead><tbody>`;
+ const cn={A:'Full Cap',B:'Two-Sided',C:'Upside',D:'REACH'};
+ for(const k of KEYS){h+=`<tr><td><span class="dot" style="background:${COL[k]}"></span>${k}</td>`+AF.map(f=>cm('arch.'+k+'.'+f[0],f[2],f[3])).join('')+`</tr>`;}
+ h+=`</tbody></table></div>`;
+ document.getElementById('panelBody').innerHTML=h;
+}
+window.preset=p=>{
+ if(p==='reset'||p==='base')S=structuredClone(DEFAULT);
+ if(p==='grow')S.states.forEach(s=>s.opens=s.opens.map(x=>x+2));
+ if(p==='slow'){S.panel_ramp_m=36;S.mat_months=36;}
+ if(p==='shock')S.tcoc_open=1.18;
+ buildPanel();refresh();
+};
+window.openDrawer=()=>{drawer.classList.add('open');overlay.classList.add('open');};
+window.closeDrawer=()=>{drawer.classList.remove('open');overlay.classList.remove('open');};
+function refresh(){renderAll(compute(S));}
+const links=[...document.querySelectorAll('.navlink')];
+const obs=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting)links.forEach(l=>l.classList.toggle('active',l.getAttribute('href')==='#'+e.target.id));});},{rootMargin:'-45% 0px -50% 0px'});
+['overview','growth','states','contracts','detail','cashflow','levers'].forEach(id=>{const el=document.getElementById(id);if(el)obs.observe(el);});
+buildPanel();buildCtabs();refresh();
+</script></body></html>

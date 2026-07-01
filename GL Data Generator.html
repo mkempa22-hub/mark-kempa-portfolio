@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cleardose GL Data Generator</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{--ink:#0e1726;--soft:#475569;--line:#e2e8f0;--accent:#1f4e79;--accent2:#2e75b6;--accent-soft:#eaf1f8;--ok:#15803d;--warn:#b45309;}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter',-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--ink);background:#f1f5f9;line-height:1.55;padding:28px}
+  .card{max-width:780px;margin:0 auto;background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 8px 30px rgba(15,23,42,.06)}
+  header{background:linear-gradient(135deg,var(--accent),#163a5c);color:#fff;padding:28px 32px}
+  header h1{font-size:1.5rem;letter-spacing:-.02em}
+  header p{opacity:.85;font-size:.92rem;margin-top:4px}
+  .body{padding:28px 32px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px 24px}
+  @media(max-width:560px){.grid{grid-template-columns:1fr}}
+  label{display:block;font-size:.8rem;font-weight:600;color:var(--soft);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em}
+  input[type=text],input[type=number],select{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:9px;font-size:.95rem;font-family:inherit;color:var(--ink)}
+  input:focus,select:focus{outline:none;border-color:var(--accent2)}
+  .row-inline{display:flex;align-items:center;gap:10px}
+  .toggle{display:flex;align-items:center;gap:10px;margin-top:6px}
+  .toggle input{width:18px;height:18px;accent-color:var(--accent)}
+  .toggle span{font-size:.92rem;color:var(--ink);text-transform:none;font-weight:500;letter-spacing:0}
+  .slider-wrap{display:flex;align-items:center;gap:12px}
+  input[type=range]{flex:1;accent-color:var(--accent)}
+  .pill{min-width:46px;text-align:center;font-weight:700;color:var(--accent);background:var(--accent-soft);border-radius:8px;padding:4px 8px;font-size:.9rem}
+  .hint{font-size:.78rem;color:var(--soft);margin-top:6px;text-transform:none;letter-spacing:0;font-weight:400}
+  details{margin-top:20px;border-top:1px solid var(--line);padding-top:16px}
+  summary{cursor:pointer;font-weight:600;color:var(--accent);font-size:.92rem}
+  details .grid{margin-top:16px}
+  .btnbar{margin-top:26px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  button{font-family:inherit;font-weight:700;font-size:1rem;padding:14px 30px;border:none;border-radius:11px;cursor:pointer;transition:.15s}
+  .go{background:var(--accent);color:#fff}
+  .go:hover{background:#163a5c;transform:translateY(-1px)}
+  .go:active{transform:none}
+  .ghost{background:#fff;border:1px solid var(--line);color:var(--ink);font-weight:600}
+  #status{margin-top:24px;border-radius:12px;padding:0;overflow:hidden;display:none}
+  #status.show{display:block}
+  .st-head{padding:12px 18px;font-weight:700;font-size:.95rem}
+  .st-ok{background:#dcfce7;color:var(--ok)}
+  .st-err{background:#fee2e2;color:#b91c1c}
+  .st-body{background:#f8fafc;border:1px solid var(--line);border-top:none;padding:16px 18px;font-size:.9rem}
+  .kv{display:grid;grid-template-columns:auto 1fr;gap:4px 16px}
+  .kv b{color:var(--soft);font-weight:600}
+  .kv span{font-variant-numeric:tabular-nums;text-align:right}
+  footer{padding:16px 32px;border-top:1px solid var(--line);font-size:.78rem;color:var(--soft);background:#fbfcfe}
+/* dark mode */
+:root{--ink:#e9edf3;--soft:#aab4c2;--line:#2a3340;--accent-soft:#16202c}
+html,body{background:#0f1216!important;color:#e9edf3}
+h1,h2,h3,h4,h5,th,strong,b{color:#e9edf3}
+.card{background:#161a21!important;color:#e9edf3}
+.ghost{background:#1b2028!important;color:#e9edf3}
+table th,thead{background:#1b2028}
+</style>
+</head>
+<body>
+<div class="card">
+  <header>
+    <h1>Cleardose Health — GL Data Generator</h1>
+    <p>Synthetic Series A health-tech ledger. Set the dials, click Refresh, get a fresh workbook.</p>
+  </header>
+  <div class="body">
+    <div class="grid">
+      <div>
+        <label>Start month</label>
+        <input type="text" id="start" value="2025-01" placeholder="YYYY-MM">
+      </div>
+      <div>
+        <label>End month</label>
+        <input type="text" id="end" value="2026-06" placeholder="YYYY-MM">
+      </div>
+    </div>
+
+    <div style="margin-top:18px">
+      <label>Fee-for-Service collection drag</label>
+      <div class="slider-wrap">
+        <input type="range" id="drag" min="0" max="1.5" step="0.05" value="0.55" oninput="document.getElementById('dragval').textContent=(+this.value).toFixed(2)">
+        <span class="pill" id="dragval">0.55</span>
+      </div>
+      <div class="hint">0 = FFS collects steadily. Higher = collections slow more as the AR pool grows (DSO rises).</div>
+      <div class="toggle"><input type="checkbox" id="ffs" checked><span>Include fee-for-service revenue &amp; AR stream</span></div>
+    </div>
+
+    <details>
+      <summary>Advanced assumptions</summary>
+      <div class="grid">
+        <div><label>Opening cash ($)</label><input type="number" id="openCash" value="18300000" step="100000"></div>
+        <div><label>FFS first-month billings ($)</label><input type="number" id="ffsStart" value="120000" step="10000"></div>
+        <div><label>FFS monthly growth</label><input type="number" id="ffsGrowth" value="0.06" step="0.01"></div>
+        <div><label>FFS base collection rate</label><input type="number" id="ffsBase" value="0.78" step="0.01"></div>
+        <div><label>FFS denial / adj. rate</label><input type="number" id="ffsDenial" value="0.07" step="0.01"></div>
+        <div><label>Random seed (blank = new each time)</label><input type="text" id="seed" value="42" placeholder="blank = random"></div>
+      </div>
+    </details>
+
+    <div class="btnbar">
+      <button class="go" id="goBtn" onclick="run()">↻ Generate / Refresh</button>
+      <button class="ghost" onclick="document.getElementById('seed').value='';run()">🎲 New random month</button>
+    </div>
+
+    <div id="status"></div>
+  </div>
+  <footer>Runs entirely in your browser — no data leaves your computer. The workbook downloads to your Downloads folder.</footer>
+</div>
+
+<script>
+//CORE-START  (pure logic + workbook build; references global XLSX; no DOM)
+const COA=[[1000,"Cash & Cash Equivalents","BS","Asset","D"],[1100,"Accounts Receivable - Subscription","BS","Asset","D"],
+[1110,"Accounts Receivable - Fee-for-Service","BS","Asset","D"],[1200,"Prepaid Expenses","BS","Asset","D"],
+[1500,"Property & Equipment, net","BS","Asset","D"],[2000,"Accounts Payable","BS","Liability","C"],
+[2100,"Accrued Liabilities","BS","Liability","C"],[2200,"Deferred Revenue","BS","Liability","C"],
+[3000,"Paid-in Capital","BS","Equity","C"],[3900,"Accumulated Deficit","BS","Equity","C"],
+[4000,"Subscription Revenue","PL","Revenue","C"],[4100,"Implementation & Services Revenue","PL","Revenue","C"],
+[4200,"Fee-for-Service Revenue","PL","Revenue","C"],[4900,"Contractual Adjustments & Denials","PL","Revenue","D"],
+[5000,"Hosting & Infrastructure","PL","COGS","D"],[5100,"Customer Support & Success","PL","COGS","D"],
+[5200,"Payment Processing Fees","PL","COGS","D"],[5300,"Third-Party Data & APIs","PL","COGS","D"],
+[6000,"R&D Salaries & Wages","PL","Opex","D"],[6010,"R&D Payroll Taxes & Benefits","PL","Opex","D"],
+[6100,"R&D Software & Tools","PL","Opex","D"],[6500,"Sales & Marketing Salaries","PL","Opex","D"],
+[6510,"S&M Payroll Taxes & Benefits","PL","Opex","D"],[6600,"Marketing Programs & Advertising","PL","Opex","D"],
+[6700,"Travel & Entertainment","PL","Opex","D"],[7000,"G&A Salaries & Wages","PL","Opex","D"],
+[7010,"G&A Payroll Taxes & Benefits","PL","Opex","D"],[7100,"Rent & Facilities","PL","Opex","D"],
+[7200,"Software & Subscriptions (G&A)","PL","Opex","D"],[7300,"Professional Fees (Legal/Audit)","PL","Opex","D"],
+[7400,"Insurance","PL","Opex","D"],[7500,"Office & Other G&A","PL","Opex","D"],
+[8000,"Depreciation & Amortization","PL","Opex","D"],[9000,"Interest Income","PL","Other Income","C"]];
+const ANAME={},ACAT={},ASTMT={};
+COA.forEach(r=>{ANAME[r[0]]=r[1];ASTMT[r[0]]=r[2];ACAT[r[0]]=r[3];});
+const DEPT={4000:"Revenue",4100:"Revenue",4200:"Revenue",4900:"Revenue",5000:"Cost of Revenue",5100:"Cost of Revenue",
+5200:"Cost of Revenue",5300:"Cost of Revenue",6000:"R&D",6010:"R&D",6100:"R&D",6500:"Sales & Marketing",
+6510:"Sales & Marketing",6600:"Sales & Marketing",6700:"Sales & Marketing",7000:"G&A",7010:"G&A",7100:"G&A",
+7200:"G&A",7300:"G&A",7400:"G&A",7500:"G&A",8000:"G&A",9000:"G&A"};
+const PFX=["Mercy","Summit","Northwell","Cedar","Riverside","Beacon","Vitality","Harbor","Pioneer","Evergreen","Apex",
+"Unity","Lakeshore","Capital","Compass","Meridian","Cornerstone","Bright","Sterling","Allied","Premier","Frontier",
+"Cascade","Granite","Highland","Sentara"];
+const SFX=["Health System","Medical Group","Clinics","Care Network","Hospital","Physicians","Health Partners","Wellness",
+"Diagnostics","Family Practice","Specialty Care","Health"];
+
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return ((t^t>>>14)>>>0)/4294967296;};}
+function R2(x){return Math.round(x*100)/100;}
+function dstr(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+function pstr(y,m){return y+"-"+String(m).padStart(2,"0");}
+
+function buildDataset(P){
+  const rng=mulberry32(P.seed>>>0);
+  const U=(lo,hi)=>lo+rng()*(hi-lo);
+  const I=(lo,hi)=>Math.floor(rng()*(hi-lo+1))+lo;
+  const C=arr=>arr[Math.floor(rng()*arr.length)];
+  const sample=(arr,k)=>{let a=arr.slice();for(let i=a.length-1;i>0;i--){let j=Math.floor(rng()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a.slice(0,k);};
+  let rows=[],jid=0;
+  function post(date,lines,memo,party){
+    let s=0;lines.forEach(l=>s+=l[1]);if(Math.abs(R2(s))>=0.01)throw new Error("Unbalanced JE: "+memo);
+    jid++;const je="JE"+String(jid).padStart(6,"0");
+    lines.forEach(([ac,amt])=>{
+      const deb=amt>0?R2(amt):0,cre=amt<0?R2(-amt):0,stmt=ASTMT[ac];
+      rows.push({JE_ID:je,Date:new Date(date),Period:pstr(date.getFullYear(),date.getMonth()+1),Account:ac,
+        Account_Name:ANAME[ac],Statement:stmt,Category:ACAT[ac],Department:DEPT[ac]||"G&A",Party:party||"",Memo:memo,
+        Debit:deb,Credit:cre,PnL_Amount:stmt==="PL"?R2(cre-deb):0,Cash_Flag:ac===1000});
+    });
+  }
+  const [sy,sm]=P.start.split("-").map(Number),[ey,em]=P.end.split("-").map(Number);
+  const oc=P.openCash,oar=360000,opp=240000,oppe=420000,oap=280000,oac=190000,odr=150000;
+  const paid=24000000,deficit=-((oc+oar+opp+oppe)-(oap+oac+odr)-paid);
+  const openDate=new Date(sy,sm-1,0);
+  post(openDate,[[1000,oc],[1100,oar],[1200,opp],[1500,oppe],[2000,-oap],[2100,-oac],[2200,-odr],[3000,-paid],[3900,deficit]],"Opening balance","Equity");
+  let customers=[];
+  for(let i=0;i<92;i++)customers.push({name:C(PFX)+" "+C(SFX),mrr:0});
+  let w=customers.map(()=>C([1,1,1,1,2,2,3,5,8])),tw=w.reduce((a,b)=>a+b,0);
+  customers.forEach((c,i)=>c.mrr=R2(286000*w[i]/tw));
+  let hc={"R&D":22,"Sales & Marketing":14,"G&A":10};
+  const sal={"R&D":11800,"Sales & Marketing":11200,"G&A":12500};
+  let drivers=[],par=oar,ffsAR=0,fb=P.ffsStart;
+  let y=sy,m=sm;
+  while(y<ey||(y===ey&&m<=em)){
+    const lastDay=new Date(y,m,0).getDate(),pe=new Date(y,m-1,lastDay),per=pstr(y,m);
+    const cr=U(0.012,0.022),nc=Math.max(0,Math.round(customers.length*cr));
+    const churned=nc?sample(customers,Math.min(nc,customers.length)):[];const chm=churned.reduce((a,c)=>a+c.mrr,0);
+    const chset=new Set(churned);customers=customers.filter(c=>!chset.has(c));
+    const nn=I(5,11);let nm=0;
+    for(let i=0;i<nn;i++){const t=C([1,1,1,2,2,3,5]),mrr=R2(U(900,1800)*t);nm+=mrr;customers.push({name:C(PFX)+" "+C(SFX),mrr});}
+    const mt=R2(customers.reduce((a,c)=>a+c.mrr,0)),ncust=customers.length;
+    const idate=new Date(y,m-1,1);
+    customers.forEach(c=>{if(c.mrr>0){post(idate,[[1100,c.mrr],[4000,-c.mrr]],"Subscription invoice "+per,c.name);par+=c.mrr;}});
+    const svc=R2(nm*U(0.8,1.5));if(svc>0){post(new Date(y,m-1,8),[[1100,svc],[4100,-svc]],"Implementation services "+per,"New customer onboarding");par+=svc;}
+    const tc=R2(par*U(0.88,0.95)),wk=R2(tc/4);
+    for(let k=0;k<4;k++){const cd=new Date(y,m-1,Math.min(7+k*7,28)),amt=k<3?wk:R2(tc-wk*3);
+      post(cd,[[1000,amt],[1100,-amt]],"Customer cash receipts wk"+(k+1),"Batch deposit");
+      const fee=R2(amt*0.0145);post(cd,[[5200,fee],[1000,-fee]],"Payment processing fees","Stripe");}
+    par=R2(par-tc);
+    let fc=0,er=0,fn=0;
+    if(P.ffs){
+      const den=R2(fb*P.ffsDenial);fn=R2(fb-den);
+      post(new Date(y,m-1,3),[[1110,fb],[4200,-fb]],"FFS claims billed "+per,"Payers (gross)");
+      if(den>0)post(new Date(y,m-1,3),[[4900,den],[1110,-den]],"Contractual adjustments & denials","Payer adjustments");
+      ffsAR+=fn;er=P.ffsBase/(1+P.drag*(ffsAR/900000));fc=R2(ffsAR*er);
+      [[12,0.5],[26,0.5]].forEach(([d,fr])=>{const amt=R2(fc*fr);if(amt>0)post(new Date(y,m-1,d),[[1000,amt],[1110,-amt]],"Payer remittance (FFS)","Insurance payers");});
+      ffsAR=R2(ffsAR-fc);fb=R2(fb*(1+P.ffsGrowth));
+    }
+    const host=R2(9000+ncust*145*U(0.95,1.08));post(new Date(y,m-1,5),[[5000,host],[2000,-host]],"AWS hosting & infrastructure","Amazon Web Services");
+    const da=R2(4500+ncust*38*U(0.9,1.1));post(new Date(y,m-1,5),[[5300,da],[2000,-da]],"Clinical data & API costs","Redox / Datavant");
+    const st=Math.max(4,Math.round(ncust/22)),sc=R2(st*7800);post(pe,[[5100,sc],[1000,-sc]],"Customer support payroll","Payroll - Support");
+    [new Date(y,m-1,15),pe].forEach(pd=>{
+      for(const dept in hc){const ba={"R&D":6000,"Sales & Marketing":6500,"G&A":7000}[dept],ta={"R&D":6010,"Sales & Marketing":6510,"G&A":7010}[dept];
+        const g=R2(hc[dept]*sal[dept]/2*U(0.99,1.01)),bt=R2(g*0.24);
+        post(pd,[[ba,g],[ta,bt],[1000,-(g+bt)]],"Payroll "+dept,"Gusto");}
+    });
+    const mk=R2(U(78000,135000));
+    [["Google Ads",0.4],["LinkedIn",0.3],["Events & Content",0.3]].forEach(([v,fr])=>{const a2=R2(mk*fr);post(new Date(y,m-1,I(3,24)),[[6600,a2],[2000,-a2]],"Marketing programs",v);});
+    const te=R2(U(12000,34000));post(new Date(y,m-1,I(10,26)),[[6700,te],[1000,-te]],"Travel & entertainment","Brex card");
+    const rt=R2(U(9000,16000));post(new Date(y,m-1,4),[[6100,rt],[1000,-rt]],"Engineering tools & infra","GitHub/Datadog");
+    const gs=R2(U(16000,26000));post(new Date(y,m-1,6),[[7200,gs],[1000,-gs]],"SaaS subscriptions","Various");
+    post(new Date(y,m-1,1),[[7100,42500],[1000,-42500]],"Office rent","WeWork/Lease");
+    const ins=R2(U(8500,9500));post(new Date(y,m-1,2),[[7400,ins],[1000,-ins]],"Insurance (D&O, cyber, GL)","Vouch");
+    const prof=R2(U(6000,12000)+([3,6,9,12].includes(m)?28000:0));post(new Date(y,m-1,18),[[7300,prof],[2000,-prof]],"Legal & accounting","Cooley / KPMG");
+    const oth=R2(U(7000,15000));post(new Date(y,m-1,20),[[7500,oth],[1000,-oth]],"Office & other G&A","Various");
+    const dep=R2(oppe/48);post(pe,[[8000,dep],[1500,-dep]],"Depreciation","Non-cash");
+    const ic=R2(U(28000,42000));post(pe,[[1000,ic],[9000,-ic]],"Interest income on cash","Treasury");
+    const ap=R2(U(180000,260000));post(new Date(y,m-1,25),[[2000,ap],[1000,-ap]],"Vendor payments (AP)","Bill.com");
+    if(rng()<0.35){const cx=R2(U(20000,60000));post(new Date(y,m-1,22),[[1500,cx],[1000,-cx]],"Capital expenditure - equipment","Apple/Dell");}
+    const thc=hc["R&D"]+hc["Sales & Marketing"]+hc["G&A"]+st,dso=(P.ffs&&fn>0)?R2(ffsAR/fn*30):0;
+    drivers.push({Period:per,Active_Customers:ncust,New_Customers:nn,Churned_Customers:churned.length,MRR:mt,
+      New_MRR:R2(nm),Churned_MRR:R2(chm),ARR:R2(mt*12),ARPU:R2(mt/ncust),Logo_Churn_Pct:R2(cr),Headcount:thc,
+      RD_HC:hc["R&D"],SM_HC:hc["Sales & Marketing"],GA_HC:hc["G&A"],Support_HC:st,Marketing_Spend:R2(mk),
+      FFS_Billings_Net:R2(fn),FFS_Collections:R2(fc),FFS_AR_Balance:R2(ffsAR),FFS_Collection_Rate:R2(er),FFS_DSO_Days:dso});
+    if(rng()<0.7)hc["R&D"]+=I(0,2);
+    if(rng()<0.6)hc["Sales & Marketing"]+=I(0,2);
+    if(rng()<0.4)hc["G&A"]+=I(0,1);
+    m++;if(m>12){m=1;y++;}
+  }
+  // bank activity
+  const others={};
+  rows.forEach(r=>{if(r.Account!==1000){(others[r.JE_ID]=others[r.JE_ID]||[]).push(r.Account);}});
+  function classify(acc,memo){const mm=memo.toLowerCase();if(mm.includes("opening balance"))return "Beginning Balance";
+    const s=new Set(acc||[]);if(s.has(1500))return "Investing";
+    if(s.has(3000)||s.has(3900)||["raise","loan","note payable","equity round"].some(k=>mm.includes(k)))return "Financing";
+    return "Operating";}
+  let bank=rows.filter(r=>r.Account===1000).map(r=>{const amt=R2(r.Debit-r.Credit),acc=others[r.JE_ID]||[],s=new Set(acc);
+    let sub;if(s.has(1100)||s.has(1110))sub="Customer / payer receipts";
+    else if(s.has(4000)||s.has(4100)||s.has(4200)||s.has(9000))sub="Other receipts";
+    else if(s.has(6000)||s.has(6010)||s.has(6500)||s.has(6510)||s.has(7000)||s.has(7010)||s.has(5100))sub="Payroll";
+    else if(s.has(2000))sub="Vendor payments (AP)";else if(s.has(1500))sub="Capital expenditure";
+    else if(s.has(3000)||s.has(3900))sub="Equity / financing";else sub="Operating expenses";
+    return {Date:new Date(r.Date),Period:r.Period,JE_ID:r.JE_ID,Description:r.Memo,Counterparty:r.Party,
+      Deposit:amt>0?amt:0,Withdrawal:amt<0?-amt:0,Amount:amt,CF_Category:classify(acc,r.Memo),CF_Subcategory:sub};});
+  bank.sort((a,b)=>a.Date-b.Date||a.JE_ID.localeCompare(b.JE_ID));
+  let run=0;bank.forEach(b=>{run=R2(run+b.Amount);b.Running_Balance=run;
+    const wd=(b.Date.getDay()+6)%7,ws=new Date(b.Date);ws.setDate(ws.getDate()-wd);b.Week_Starting=new Date(ws);});
+  bank=bank.map(b=>({Date:b.Date,Week_Starting:b.Week_Starting,Period:b.Period,JE_ID:b.JE_ID,Description:b.Description,
+    Counterparty:b.Counterparty,Deposit:b.Deposit,Withdrawal:b.Withdrawal,Amount:b.Amount,Running_Balance:b.Running_Balance,
+    CF_Category:b.CF_Category,CF_Subcategory:b.CF_Subcategory}));
+  // budget
+  const plKey={};const periods=[...new Set(rows.filter(r=>r.Statement==="PL").map(r=>r.Period))].sort();
+  rows.filter(r=>r.Statement==="PL").forEach(r=>{const k=r.Account+"|"+r.Period;plKey[k]=(plKey[k]||0)+r.PnL_Amount;});
+  const accts=[...new Set(rows.filter(r=>r.Statement==="PL").map(r=>r.Account))];
+  let budget=[];
+  accts.forEach(ac=>{const vals=periods.map(p=>R2(plKey[ac+"|"+p]||0));
+    periods.forEach((p,i)=>{const win=vals.slice(Math.max(0,i-2),i+1);const avg=win.reduce((a,b)=>a+b,0)/win.length;
+      budget.push({Period:p,Account:ac,Account_Name:ANAME[ac],Category:ACAT[ac],Department:DEPT[ac]||"G&A",Budget_Amount:Math.round(avg*U(0.97,1.03))});});});
+  // summary
+  const cashRows=rows.filter(r=>r.Account===1000);const endCash=R2(cashRows.reduce((a,r)=>a+r.Debit-r.Credit,0));
+  const rev=R2(rows.filter(r=>r.Statement==="PL"&&r.Category==="Revenue").reduce((a,r)=>a+r.PnL_Amount,0));
+  const ni={};rows.filter(r=>r.Statement==="PL").forEach(r=>ni[r.Period]=(ni[r.Period]||0)+r.PnL_Amount);
+  const niP=periods.map(p=>ni[p]);const last3=niP.slice(-3);const burn=-(last3.reduce((a,b)=>a+b,0)/last3.length);
+  const balanced=Math.abs(rows.reduce((a,r)=>a+r.Debit-r.Credit,0))<1;
+  const ties=Math.abs(endCash-bank[bank.length-1].Running_Balance)<1;
+  const fl=drivers[drivers.length-1];
+  return {gl:rows,bank,budget,drivers,
+    summary:{glLines:rows.length,jes:jid,balanced,bankLines:bank.length,ties,endCash,rev,
+      runway:burn>0?endCash/burn:Infinity,burn,
+      ffsRate:fl.FFS_Collection_Rate,ffsAR:fl.FFS_AR_Balance,ffsDSO:fl.FFS_DSO_Days,
+      mrr:fl.MRR,arr:fl.ARR,customers:fl.Active_Customers,headcount:fl.Headcount,ffs:P.ffs}};
+}
+
+const MONEY='$#,##0;($#,##0);"-"',PCT='0.0%',INT='#,##0',DATE='yyyy-mm-dd',DEC1='#,##0.0';
+const FMT={
+  GL_Detail:{Debit:MONEY,Credit:MONEY,PnL_Amount:MONEY,Account:INT,Date:DATE},
+  Bank_Activity:{Deposit:MONEY,Withdrawal:MONEY,Amount:MONEY,Running_Balance:MONEY,Date:DATE,Week_Starting:DATE},
+  Budget:{Budget_Amount:MONEY,Account:INT},
+  Drivers_KPIs:{MRR:MONEY,New_MRR:MONEY,Churned_MRR:MONEY,ARR:MONEY,ARPU:MONEY,Marketing_Spend:MONEY,
+    FFS_Billings_Net:MONEY,FFS_Collections:MONEY,FFS_AR_Balance:MONEY,Logo_Churn_Pct:PCT,FFS_Collection_Rate:PCT,
+    FFS_DSO_Days:DEC1,Active_Customers:INT,New_Customers:INT,Churned_Customers:INT,Headcount:INT,RD_HC:INT,SM_HC:INT,GA_HC:INT,Support_HC:INT},
+  Chart_of_Accounts:{Account:INT}
+};
+const WIDTH={JE_ID:11,Date:12,Week_Starting:13,Period:9,Account:9,Account_Name:34,Statement:9,Category:13,Department:18,
+  Party:24,Counterparty:24,Memo:30,Description:30,Debit:13,Credit:13,PnL_Amount:14,Cash_Flag:9,Deposit:13,Withdrawal:13,
+  Amount:13,Running_Balance:15,CF_Category:14,CF_Subcategory:26,Budget_Amount:14,Normal_Balance:14,MRR:13,ARR:13};
+
+function addSheet(wb,name,data){
+  const ws=XLSX.utils.json_to_sheet(data,{cellDates:true});
+  const hdr=Object.keys(data[0]),range=XLSX.utils.decode_range(ws['!ref']),fmt=FMT[name]||{};
+  ws['!cols']=hdr.map(h=>({wch:WIDTH[h]||13}));
+  for(let c=range.s.c;c<=range.e.c;c++){const f=fmt[hdr[c]];if(!f)continue;
+    for(let r=range.s.r+1;r<=range.e.r;r++){const cell=ws[XLSX.utils.encode_cell({r,c})];if(cell)cell.z=f;}}
+  ws['!autofilter']={ref:ws['!ref']};
+  XLSX.utils.book_append_sheet(wb,ws,name);
+}
+
+function buildWorkbook(D){
+  const wb=XLSX.utils.book_new();
+  const readme=[["Cleardose Health - Synthetic GL Dataset"],[""],
+   ["SHEETS"],
+   ["GL_Detail","Transaction-level balanced double-entry journal lines (source of truth)."],
+   ["Bank_Activity","Every cash movement w/ running balance + Operating/Investing/Financing tags."],
+   ["Budget","Plan by account x month (P&L sign: revenue +, expense -)."],
+   ["Drivers_KPIs","Customers, MRR, ARR, churn, headcount, fee-for-service AR & collection rate."],
+   ["Chart_of_Accounts","Account master."],[""],
+   ["CONVENTIONS"],
+   ["PnL_Amount","Credit - Debit for P&L accts. Revenue +, expenses -. Net income = SUM(PnL_Amount)."],
+   ["FFS AR","Acct 1110. Collections slow as AR grows (rate = base / (1 + drag*AR/scale))."],[""],
+   ["Generated",new Date().toISOString().slice(0,10)]];
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(readme),"README");
+  wb.Sheets["README"]['!cols']=[{wch:22},{wch:82}];
+  addSheet(wb,"GL_Detail",D.gl);
+  addSheet(wb,"Bank_Activity",D.bank);
+  addSheet(wb,"Budget",D.budget);
+  addSheet(wb,"Drivers_KPIs",D.drivers);
+  addSheet(wb,"Chart_of_Accounts",COA.map(r=>({Account:r[0],Account_Name:r[1],Statement:r[2],Category:r[3],Normal_Balance:r[4]})));
+  return wb;
+}
+//CORE-END
+function fmtUSD(x){return (x<0?"-$":"$")+Math.abs(Math.round(x)).toLocaleString();}
+function run(){
+  const btn=document.getElementById("goBtn");btn.disabled=true;btn.textContent="Working…";
+  setTimeout(()=>{
+   try{
+    const seedRaw=document.getElementById("seed").value.trim();
+    const seed=seedRaw===""?(Date.now()&0xffffffff):(parseInt(seedRaw,10)||42);
+    const P={start:document.getElementById("start").value.trim(),end:document.getElementById("end").value.trim(),
+      ffs:document.getElementById("ffs").checked,drag:+document.getElementById("drag").value,
+      openCash:+document.getElementById("openCash").value,ffsStart:+document.getElementById("ffsStart").value,
+      ffsGrowth:+document.getElementById("ffsGrowth").value,ffsBase:+document.getElementById("ffsBase").value,
+      ffsDenial:+document.getElementById("ffsDenial").value,seed};
+    if(!/^\d{4}-\d{2}$/.test(P.start)||!/^\d{4}-\d{2}$/.test(P.end))throw new Error("Use YYYY-MM for the months.");
+    const D=buildDataset(P),s=D.summary;
+    XLSX.writeFile(buildWorkbook(D),"Cleardose_GL_Dataset.xlsx");
+    const st=document.getElementById("status");
+    st.className="show";
+    st.innerHTML='<div class="st-head st-ok">✓ Workbook generated &amp; downloaded — Cleardose_GL_Dataset.xlsx</div>'+
+      '<div class="st-body"><div class="kv">'+
+      '<b>GL lines</b><span>'+s.glLines.toLocaleString()+' ('+s.jes.toLocaleString()+' JEs)</span>'+
+      '<b>Books balanced</b><span>'+(s.balanced?"Yes ✓":"NO ✗")+'</span>'+
+      '<b>Bank ties to GL cash</b><span>'+(s.ties?"Yes ✓":"NO ✗")+'</span>'+
+      '<b>Ending cash</b><span>'+fmtUSD(s.endCash)+'</span>'+
+      '<b>Runway (3-mo burn)</b><span>'+(isFinite(s.runway)?s.runway.toFixed(1)+" months":"n/a")+'</span>'+
+      '<b>MRR / ARR</b><span>'+fmtUSD(s.mrr)+' / '+fmtUSD(s.arr)+'</span>'+
+      '<b>Customers / Headcount</b><span>'+s.customers+' / '+s.headcount+'</span>'+
+      (s.ffs?'<b>FFS collection rate</b><span>'+(s.ffsRate*100).toFixed(0)+'% (DSO '+s.ffsDSO+'d, AR '+fmtUSD(s.ffsAR)+')</span>':'')+
+      '</div></div>';
+   }catch(e){
+    const st=document.getElementById("status");st.className="show";
+    st.innerHTML='<div class="st-head st-err">✗ '+e.message+'</div>';
+   }
+   btn.disabled=false;btn.textContent="↻ Generate / Refresh";
+  },30);
+}
+</script>
+</body>
+</html>

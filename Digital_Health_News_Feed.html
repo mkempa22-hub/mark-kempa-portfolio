@@ -1,0 +1,138 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Digital Health — Weekly TLDR</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+:root{--ink:#0c1b2a;--muted:#5f7385;--line:#e3edf0;--bg:#eef5f6;--card:#fff;
+ --teal:#0ea5a4;--mint:#d7f0ee;--indigo:#4f46e5;--rose:#e11d48;--amber:#f59e0b;
+ --shadow:0 10px 26px -20px rgba(8,40,52,.4);color-scheme:light}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:'Inter',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);line-height:1.45;font-size:13px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1040px;margin:0 auto;padding:0 18px 40px}
+/* compact hero */
+.hero{position:relative;overflow:hidden;margin:0 -18px 0;padding:20px 18px 16px;color:#eafcfb;
+ background:radial-gradient(900px 200px at 80% -50%,rgba(34,211,238,.3),transparent 60%),linear-gradient(135deg,#072033 0%,#0a3d52 55%,#0e7d7a 130%)}
+.hero-in{max-width:1040px;margin:0 auto;position:relative;z-index:2;display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.ekg{position:absolute;left:0;right:0;bottom:0;width:100%;height:54px;z-index:1;opacity:.45}
+.ekg path{fill:none;stroke:#5ef0e0;stroke-width:2;stroke-linecap:round;stroke-dasharray:1400;stroke-dashoffset:1400;animation:trace 5s linear infinite}
+@keyframes trace{to{stroke-dashoffset:0}}
+.brandrow{font-weight:700;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:#7fe9de}
+.hero h1{font-size:22px;margin:3px 0 2px;font-weight:900;letter-spacing:-.02em}
+.hero .sub{color:#bfe9e6;font-size:12px;margin:0}
+.hmeta{text-align:right;font-size:11px;color:#bfe9e6}
+.hmeta .big{font-size:15px;font-weight:800;color:#fff}
+.live{display:inline-flex;align-items:center;gap:6px;background:rgba(94,240,192,.14);border:1px solid rgba(94,240,192,.3);color:#9ff5dd;padding:3px 9px;border-radius:999px;font-size:10px;font-weight:600;margin-top:6px}
+.pulse{width:7px;height:7px;border-radius:50%;background:#5ef0c0;animation:pulse 1.8s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(94,240,192,.55)}70%{box-shadow:0 0 0 7px rgba(94,240,192,0)}100%{box-shadow:0 0 0 0 rgba(94,240,192,0)}}
+.filters{position:sticky;top:0;z-index:20;display:flex;gap:7px;padding:10px 0 6px;background:linear-gradient(var(--bg),var(--bg) 75%,transparent)}
+.fbtn{border:1px solid var(--line);background:#fff;color:var(--muted);font-weight:650;font-size:12px;padding:6px 13px;border-radius:999px;cursor:pointer;font-family:inherit;transition:.15s}
+.fbtn:hover{border-color:var(--teal);color:var(--teal)}
+.fbtn.active{background:#0a2540;color:#fff;border-color:#0a2540}
+h2.sec{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:700;margin:16px 2px 9px;display:flex;align-items:center;gap:8px}
+h2.sec .ln{flex:1;height:1px;background:var(--line)}
+/* themes: single compact card, rows */
+.themes{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:6px 14px;box-shadow:var(--shadow)}
+.trow{display:flex;gap:10px;align-items:baseline;padding:7px 0;border-top:1px solid var(--line);font-size:12.5px}
+.trow:first-child{border-top:none}
+.trow .tn{font-weight:750;color:var(--teal);min-width:150px;font-size:12px}
+.trow p{margin:0;color:#46586a}
+/* newsletters: 2-col compact grid */
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:12px 14px;box-shadow:var(--shadow);position:relative;overflow:hidden;transition:transform .15s}
+.card:hover{transform:translateY(-2px)}
+.card:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--bar,var(--teal))}
+.ch{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.av{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;color:#fff;flex-shrink:0;background:var(--bar,var(--teal))}
+.ch h3{margin:0;font-size:14px;font-weight:800;flex:1;letter-spacing:-.01em}
+.cad{font-size:9.5px;font-weight:600;color:var(--muted);background:#eef5f6;border:1px solid var(--line);padding:3px 8px;border-radius:999px;white-space:nowrap}
+.it{font-weight:700;font-size:12.5px;margin:0}
+.id{font-size:10px;color:var(--teal);font-weight:700;text-transform:uppercase;letter-spacing:.03em;margin:0 0 4px}
+.sum{font-size:12px;color:#45586a;margin:0 0 7px}
+.sum b{color:var(--ink)}
+.lk{color:var(--teal);text-decoration:none;font-size:11.5px;font-weight:700}
+.lk:hover{text-decoration:underline}
+/* videos compact */
+.vids{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.vid{background:var(--card);border:1px solid var(--line);border-radius:13px;overflow:hidden;box-shadow:var(--shadow)}
+.embed{position:relative;width:100%;aspect-ratio:16/9;background:#000}
+.embed iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.vcap{display:flex;align-items:center;gap:9px;padding:8px 12px}
+.vcap .vt{font-weight:800;font-size:12.5px;margin:0;letter-spacing:-.01em}
+.vcap .vh{font-size:10px;color:var(--muted);margin:0}
+.vcap .vlink{margin-left:auto;color:var(--teal);font-size:11px;font-weight:700;text-decoration:none;white-space:nowrap}
+.vcap .vlink:hover{text-decoration:underline}
+.foot{margin-top:18px;font-size:10.5px;color:#8aa0ac;text-align:center;line-height:1.6}
+.cact{display:flex;align-items:center;gap:14px;margin-top:2px}
+.exp{background:none;border:none;color:var(--muted);font-weight:700;font-size:11px;cursor:pointer;font-family:inherit;padding:0}
+.exp:hover{color:var(--teal)}
+.stories{display:none;margin-top:8px;border-top:1px dashed var(--line);padding-top:7px}
+.stories.open{display:block}
+.stories a{display:block;font-size:11px;color:#45586a;text-decoration:none;padding:4px 0;border-bottom:1px solid #f1f4f7;line-height:1.4}
+.stories a:last-child{border-bottom:none}.stories a:hover{color:var(--teal)}
+.stories a b{color:var(--ink)}
+.hide{display:none!important}
+@media(max-width:720px){.cards,.vids{grid-template-columns:1fr}.trow .tn{min-width:0;display:block}}
+</style></head><body>
+<div class="hero">
+  <svg class="ekg" viewBox="0 0 1000 54" preserveAspectRatio="none"><path d="M0 32 H210 l12 -8 10 20 11 -38 12 46 11 -20 H470 l12 -8 10 20 11 -38 12 46 11 -20 H760 l12 -8 10 20 11 -38 12 46 11 -20 H1000"/></svg>
+  <div class="hero-in">
+    <div><div class="brandrow">✚ Digital Health Intelligence</div>
+      <h1>Weekly TLDR</h1>
+      <p class="sub">The week in digital health — newsletters &amp; shows, summarized.</p></div>
+    <div class="hmeta"><div class="big">Jun 24–30, 2026</div>6 newsletters · 5 shows · 5 themes
+      <div><span class="live"><span class="pulse"></span>Refreshes Mondays · updated Jun 30</span></div></div>
+  </div>
+</div>
+<div class="wrap">
+  <div class="filters">
+    <button class="fbtn active" data-f="all" onclick="filt('all',this)">All</button>
+    <button class="fbtn" data-f="news" onclick="filt('news',this)">📨 Newsletters</button>
+    <button class="fbtn" data-f="video" onclick="filt('video',this)">🎬 Shows</button>
+  </div>
+
+  <div data-grp="themes">
+  <h2 class="sec">⚡ Top themes <span class="ln"></span></h2>
+  <div class="themes">
+    <div class="trow"><span class="tn">⚖️ AI liability goes mainstream</span><p>Malpractice carriers rethink underwriting for ambient scribes &amp; autonomous agents (<b>Out-Of-Pocket</b>); <b>Updoc's FDA win</b> raises the bar for rivals proving safety.</p></div>
+    <div class="trow"><span class="tn">🤝 Care delivery consolidates</span><p><b>Cityblock→Homeward</b>; Matic's AI-native primary care draws a <b>"Chick-fil-A of healthcare"</b> comparison; patients still stuck across <b>"a hundred front doors."</b></p></div>
+    <div class="trow"><span class="tn">💰 Capital chases automation</span><p>a16z backs <b>Prosper</b> voice AI, <b>Assort</b> raises $120M, <b>Cadence</b>'s $100M Series C — investors betting on cost takeout over headcount.</p></div>
+    <div class="trow"><span class="tn">📉 Payer &amp; policy squeeze</span><p>Double-digit <b>ACA premium</b> hikes, <b>PBM Reform 2026</b> rules take effect, Medicare's <b>GLP-1 bridge</b> pricing still falls short for patients.</p></div>
+    <div class="trow"><span class="tn">🩺 Clinician AI meets reality</span><p>An <b>AI scribe in the wild</b>, patient <b>portal inbox overload</b> burning out physicians, and whether AI <b>"beats doctors... sort of."</b></p></div>
+  </div>
+  </div>
+
+  <div data-grp="news">
+  <h2 class="sec">📨 By newsletter <span class="ln"></span></h2>
+  <div class="cards">
+    <div class="card" style="--bar:var(--indigo)"><div class="ch"><div class="av">HTN</div><h3>Health Tech Nerds</h3><span class="cad">Daily</span></div><p class="id">Jun 25–30</p><p class="sum">Corporate practice-of-medicine rules tighten in <b>CA</b>; <b>Cityblock→Homeward</b>; agentic voice AI funding frenzy (<b>Prosper, Assort</b>) forces an ROI reckoning.</p><div class="cact"><a class="lk" href="https://www.healthtechnerds.com/p/corporate-practice-of-medicine-in-ca-sword-s-msk-play-in-portugal-the-2026-exchange-report-from-aspe" target="_blank" rel="noopener">Read latest ↗</a><button class="exp" onclick="toggle(this)">▾ 4 stories</button></div><div class="stories"><a href="https://www.healthtechnerds.com/p/corporate-practice-of-medicine-in-ca-sword-s-msk-play-in-portugal-the-2026-exchange-report-from-aspe" target="_blank" rel="noopener"><b>Jun 30:</b> Corporate Practice of Medicine in CA; Sword's MSK play in Portugal; 2026 Exchange Report from ASPE</a><a href="https://www.healthtechnerds.com/p/weekly-health-tech-reads-6-28-2026" target="_blank" rel="noopener"><b>Jun 28:</b> Weekly Reads — Cityblock acquires Homeward; the agentic voice AI market after Prosper &amp; Assort's raises</a><a href="https://www.healthtechnerds.com/p/klomp-nom-for-hhs-dep-sec-what-s-updoc-hera-raises-27m" target="_blank" rel="noopener"><b>Jun 26:</b> Klomp nom for HHS Dep Sec; What's UpDoc?; Hera raises $27M</a><a href="https://www.healthtechnerds.com/p/cityblock-set-to-acquire-homeward-superpower-shares-impressive-growth-9t-in-national-health-expendit" target="_blank" rel="noopener"><b>Jun 25:</b> Cityblock and Homeward; Superpower's growth; ~$9T national health expenditures by 2034</a></div></div>
+    <div class="card" style="--bar:var(--teal)"><div class="ch"><div class="av">SO</div><h3>Second Opinion</h3><span class="cad">Christina Farr</span></div><p class="id">Jun 20–27</p><p class="sum"><b>Updoc's FDA win</b> raises the stakes for health AI rivals; a four-part framework for <b>buying health AI</b>; Lifers podcast crosses 1M views as Midjourney enters medical.</p><div class="cact"><a class="lk" href="https://secondopinion.media/p/updoc-s-fda-win-raises-the-stakes-for-health-ai-rivals" target="_blank" rel="noopener">Read latest ↗</a><button class="exp" onclick="toggle(this)">▾ 3 stories</button></div><div class="stories"><a href="https://secondopinion.media/p/updoc-s-fda-win-raises-the-stakes-for-health-ai-rivals" target="_blank" rel="noopener"><b>Jun 27:</b> Updoc's FDA Win Raises the Stakes for Health AI Rivals</a><a href="https://secondopinion.media/p/buying-health-ai-here-s-a-four-part-framework" target="_blank" rel="noopener"><b>Jun 23:</b> Buying health AI? Here's a four-part framework</a><a href="https://secondopinion.media/p/lifers-hits-1m-views-and-midjourney-enters-medical" target="_blank" rel="noopener"><b>Jun 20:</b> Lifers hits 1M views and Midjourney enters medical</a></div></div>
+    <div class="card" style="--bar:var(--rose)"><div class="ch"><div class="av">H</div><h3>Hospitalogy</h3><span class="cad">Blake Madden</span></div><p class="id">Jun 25–30</p><p class="sum">Matic's <b>"Chick-fil-A of healthcare"</b> bet on AI-native primary care; patients still navigating <b>a hundred front doors</b>; the infrastructure gap holding back VBC.</p><div class="cact"><a class="lk" href="https://hospitalogy.com/articles/2026-06-30/when-chick-fil-a-enters-healthcare-inside-matic-and-their-vision-for-ai-native-advanced-primary-care/" target="_blank" rel="noopener">Read latest ↗</a><button class="exp" onclick="toggle(this)">▾ 3 stories</button></div><div class="stories"><a href="https://hospitalogy.com/articles/2026-06-30/when-chick-fil-a-enters-healthcare-inside-matic-and-their-vision-for-ai-native-advanced-primary-care/" target="_blank" rel="noopener"><b>Jun 30:</b> When Chick-Fil-A Enters Healthcare: Inside Matic and Their Vision for AI-Native Advanced Primary Care</a><a href="https://hospitalogy.com/articles/2026-06-29/one-patient-a-hundred-front-doors/" target="_blank" rel="noopener"><b>Jun 29:</b> One Patient, A Hundred Front Doors</a><a href="https://hospitalogy.com/articles/2026-06-25/the-missing-infrastructure-for-value-based-care/" target="_blank" rel="noopener"><b>Jun 25:</b> The Missing Infrastructure for Value-Based Care</a></div></div>
+    <div class="card" style="--bar:var(--amber)"><div class="ch"><div class="av">AI</div><h3>Healthcare AI Guy</h3><span class="cad">Weekly</span></div><p class="id">Wk Jun 23</p><p class="sum">Midjourney's wild pivot into healthcare imaging; <b>AI beats doctors... sort of</b>; power shifting to patients as tools go direct-to-consumer.</p><div class="cact"><a class="lk" href="https://www.healthcareaiguy.com/p/healthcare-ai-guy-weekly-6-23" target="_blank" rel="noopener">Read latest ↗</a><button class="exp" onclick="toggle(this)">▾ 3 stories</button></div><div class="stories"><a href="https://www.healthcareaiguy.com/p/healthcare-ai-guy-weekly-6-23" target="_blank" rel="noopener"><b>Midjourney's pivot:</b> the AI art tool's wild move into healthcare</a><a href="https://www.healthcareaiguy.com/p/healthcare-ai-guy-weekly-6-23" target="_blank" rel="noopener"><b>AI vs. doctors:</b> AI beats doctors... sort of</a><a href="https://www.healthcareaiguy.com/p/healthcare-ai-guy-weekly-6-23" target="_blank" rel="noopener"><b>Power shift:</b> power to the people, and more</a></div></div>
+    <div class="card" style="--bar:#14b8a6"><div class="ch"><div class="av" style="background:#14b8a6">OOP</div><h3>Out-Of-Pocket</h3><span class="cad">Nikhil Krishnan</span></div><p class="id">Jun 16–23</p><p class="sum">AI is upending <b>malpractice</b> — ambient scribes as ground truth, autonomous agents creating liability at scale, and whether AI itself becomes the standard of care.</p><div class="cact"><a class="lk" href="https://www.outofpocket.health/p/how-ai-is-reshaping-malpractice-carriers" target="_blank" rel="noopener">Read latest ↗</a><button class="exp" onclick="toggle(this)">▾ 2 stories</button></div><div class="stories"><a href="https://www.outofpocket.health/p/how-ai-is-reshaping-malpractice-carriers" target="_blank" rel="noopener"><b>Jun 23:</b> How AI Is Reshaping Malpractice Carriers</a><a href="https://www.outofpocket.health/p/malpractice-and-the-new-healthcare-order" target="_blank" rel="noopener"><b>Jun 16:</b> Malpractice Insurance Is Not Built for the New Healthcare Order</a></div></div>
+    <div class="card" style="--bar:#10b981"><div class="ch"><div class="av" style="background:#10b981">HH</div><h3>Healthcare Huddle</h3><span class="cad">Jared Dashevsky</span></div><p class="id">Jun 21–28</p><p class="sum">Medicare's <b>GLP-1 bridge</b> pricing still falls short; patient <b>portal inbox overload</b> quietly burning out physicians; what PBM reform actually changes.</p><div class="cact"><a class="lk" href="https://www.healthcarehuddle.com/p/medicare-glp-1-bridge-why-lower-prices-still-fall-short" target="_blank" rel="noopener">Read latest ↗</a><button class="exp" onclick="toggle(this)">▾ 3 stories</button></div><div class="stories"><a href="https://www.healthcarehuddle.com/p/medicare-glp-1-bridge-why-lower-prices-still-fall-short" target="_blank" rel="noopener"><b>Jun 28:</b> Medicare GLP-1 Bridge: Why Lower Prices Still Fall Short</a><a href="https://www.healthcarehuddle.com/p/patient-portal-inbox-overload-why-it-s-getting-worse" target="_blank" rel="noopener"><b>Jun 25:</b> Patient Portal Inbox Overload: Why It's Getting Worse</a><a href="https://www.healthcarehuddle.com/p/pbm-reform-2026-what-the-new-rules-mean-for-drug-prices-and-your-patients" target="_blank" rel="noopener"><b>Jun 21:</b> PBM Reform 2026: What the New Rules Mean for Drug Prices and Your Patients</a></div></div>
+  </div>
+  </div>
+
+  <div data-grp="video">
+  <h2 class="sec">🎬 Shows — watch &amp; listen <span class="ln"></span></h2>
+  <div class="vids">
+    <div class="vid"><div class="embed"><iframe src="https://open.spotify.com/embed/show/27L1g7ieN7cRd48iGe0qu7" title="HTN Radio" loading="lazy" allow="encrypted-media; clipboard-write" allowfullscreen></iframe></div><div class="vcap"><div><p class="vt">HTN Radio</p><p class="vh">O'Leary &amp; Cech</p></div><a class="vlink" href="https://open.spotify.com/show/27L1g7ieN7cRd48iGe0qu7" target="_blank" rel="noopener">Listen ↗</a></div></div>
+    <div class="vid"><div class="embed"><iframe src="https://open.spotify.com/embed/show/0A8NwQE976s32zdBbZw6bv" title="Lifers" loading="lazy" allow="encrypted-media; clipboard-write" allowfullscreen></iframe></div><div class="vcap"><div><p class="vt">Lifers</p><p class="vh">Christina Farr</p></div><a class="vlink" href="https://open.spotify.com/show/0A8NwQE976s32zdBbZw6bv" target="_blank" rel="noopener">Listen ↗</a></div></div>
+    <div class="vid"><div class="embed"><iframe src="https://open.spotify.com/embed/show/6ZAuHMjWuV3FxADVOCibAc" title="Claims Denied" loading="lazy" allow="encrypted-media; clipboard-write" allowfullscreen></iframe></div><div class="vcap"><div><p class="vt">Claims Denied</p><p class="vh">Blake Madden · Hospitalogy</p></div><a class="vlink" href="https://open.spotify.com/show/6ZAuHMjWuV3FxADVOCibAc" target="_blank" rel="noopener">Listen ↗</a></div></div>
+    <div class="vid"><div class="embed"><iframe src="https://open.spotify.com/embed/show/24Qn4rIpSAz2FcFVk6dbGl" title="Heart of Healthcare" loading="lazy" allow="encrypted-media; clipboard-write" allowfullscreen></iframe></div><div class="vcap"><div><p class="vt">Heart of Healthcare</p><p class="vh">Tecco · Esquivel · Kraus</p></div><a class="vlink" href="https://open.spotify.com/show/24Qn4rIpSAz2FcFVk6dbGl" target="_blank" rel="noopener">Listen ↗</a></div></div>
+    <div class="vid"><a class="embed" href="https://www.youtube.com/channel/UC8Hr2D7Y5rqzb63U-1fPXrg" target="_blank" rel="noopener" style="background:linear-gradient(135deg,#0a2540,#0e7490);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;text-decoration:none;color:#eafcfb"><span style="width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.95);display:flex;align-items:center;justify-content:center"><span style="border-left:15px solid #0a2540;border-top:9px solid transparent;border-bottom:9px solid transparent;margin-left:4px"></span></span><span style="font-size:12px;font-weight:700;letter-spacing:.02em">Watch on YouTube ↗</span></a><div class="vcap"><div><p class="vt">AHealthcareZ</p><p class="vh">Dr. Eric Bricker · finance</p></div><a class="vlink" href="https://www.youtube.com/channel/UC8Hr2D7Y5rqzb63U-1fPXrg" target="_blank" rel="noopener">Channel ↗</a></div></div>
+  </div>
+  </div>
+
+  <p class="foot">Auto-generated weekly from public posts · follow source links for full issues &amp; episodes · refreshes Mondays 8am.</p>
+</div>
+<script>
+function toggle(btn){const st=btn.closest(".card").querySelector(".stories");const o=st.classList.toggle("open");btn.textContent=o?("\u25b4 hide stories"):("\u25be "+st.children.length+" stories");}
+function filt(f,btn){document.querySelectorAll('.fbtn').forEach(b=>b.classList.toggle('active',b===btn));
+ document.querySelectorAll('[data-grp]').forEach(g=>{const grp=g.getAttribute('data-grp');
+  let show=f==='all'||(f==='news'&&(grp==='news'||grp==='themes'))||(f==='video'&&grp==='video');
+  g.classList.toggle('hide',!show);});window.scrollTo({top:0,behavior:'smooth'});}
+</script>
+</body></html>
